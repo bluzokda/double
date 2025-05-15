@@ -1,4 +1,3 @@
-// script.js
 // Глобальные переменные
 let currentDepositTask = {};
 let currentAnnuityTask = {};
@@ -404,6 +403,7 @@ function checkEgeAnswer() {
     
     resultDiv.classList.remove('hidden');
     answerInput.disabled = true;
+
     
     // Обновление счетчиков
     document.getElementById('ege-score').textContent = egeTotalScore;
@@ -769,7 +769,7 @@ function generateAdvancedEgeTask() {
         case 'deposit-additions':
             // Вклад с ежегодными пополнениями
             const additions = Math.round((100000 + Math.random() * 400000) / 10000) * 10000; // Пополнения от 100к до 500к
-            const finalAmount = Math.round(amount * Math.pow(1 + rate/100, 5) + additions * (Math.pow(1 + rate/100, 4) + Math.pow(1 + rate/100, 3) + Math.pow(1 + rate/100, 2) + (1 + rate/100)));
+            const finalAmount = Math.round(amount * Math.pow(1 + rate/100, 5) + additions * (Math.pow(1 + rate/100, 4) + Math.pow(1 + rate/100, 3) + Math.pow(1 + rate/100, 2) + (1 + rate/100));
             
             question = `В банк помещена сумма ${(amount/1000000).toLocaleString('ru-RU')} млн рублей под ${rate}% годовых. В конце каждого из первых четырех лет хранения после начисления процентов вкладчик дополнительно вносил на счет ${additions.toLocaleString('ru-RU')} рублей. Какая сумма будет на счету к концу пятого года?`;
             correct = finalAmount.toString();
