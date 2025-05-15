@@ -1,3 +1,4 @@
+// script.js
 // Глобальные переменные
 let currentDepositTask = {};
 let currentAnnuityTask = {};
@@ -403,7 +404,7 @@ function checkEgeAnswer() {
     
     resultDiv.classList.remove('hidden');
     answerInput.disabled = true;
-
+    
     // Обновление счетчиков
     document.getElementById('ege-score').textContent = egeTotalScore;
     document.getElementById('ege-tasks').textContent = `${egeTasksCompleted}/10`;
