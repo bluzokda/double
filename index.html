@@ -247,85 +247,153 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRla3htcXJicGR6bWJjanN6a3NnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDczMzE4NTAsImV4cCI6MjA2MjkwNzg1MH0.YLJrqLBam99cYu0_ZTi-I57kYw7aCrilHyriTwLVYZ4';
         const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-        // Обработка формы отзывов
-        document.getElementById('feedback-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const name = document.getElementById('feedback-name').value;
-            const text = document.getElementById('feedback-text').value;
-            const rating = document.getElementById('feedback-rating').value;
-            const activeTab = document.querySelector('.tab-active');
-            const taskType = activeTab ? activeTab.textContent.trim() : 'Общий';
-            
+        // Функция для сохранения ответов пользователей
+        async function saveUserResponse(taskType, userAnswer, isCorrect, correctAnswer) {
             try {
-                // Сохраняем в базу
                 const { error } = await supabase
-                    .from('financial_feedback')
+                    .from('user_responses')
                     .insert([{
-                        name: name,
-                        text: text,
-                        rating: rating,
-                        task_type: taskType
+                        task_type: taskType,
+                        user_answer: userAnswer,
+                        is_correct: isCorrect,
+                        correct_answer: correctAnswer,
+                        response_time: new Date().toISOString()
                     }]);
                 
                 if (error) throw error;
-                
-                // Очищаем форму и обновляем список
-                e.target.reset();
-                loadFeedback();
-                showAlert('Отзыв сохранён! Спасибо!', 'success');
+                console.log('Ответ сохранен в базу');
             } catch (err) {
-                showAlert('Ошибка: ' + err.message, 'error');
-                console.error(err);
+                console.error('Ошибка сохранения:', err);
             }
-        });
+        }
 
-        // Загрузка отзывов
-        async function loadFeedback() {
+        // Модифицированные функции проверки ответов
+        function checkDepositAnswer() {
+            const userAnswer = document.getElementById('deposit-answer').value;
+            const correctAnswer = calculateDepositAnswer(); // Ваша функция расчета
+            
+            const isCorrect = Math.abs(userAnswer - correctAnswer) < 0.01;
+            
+            // Сохраняем результат
+            saveUserResponse(
+                'Вклады',
+                userAnswer,
+                isCorrect,
+                correctAnswer
+            );
+
+            // Показываем результат пользователю
+            showResult(isCorrect, correctAnswer, 'deposit-result');
+        }
+
+        function checkAnnuityAnswer() {
+            const userAnswer = document.getElementById('annuity-answer').value;
+            const correctAnswer = calculateAnnuityAnswer();
+            
+            const isCorrect = Math.abs(userAnswer - correctAnswer) < 0.01;
+            
+            saveUserResponse(
+                'Аннуитетный кредит',
+                userAnswer,
+                isCorrect,
+                correctAnswer
+            );
+            
+            showResult(isCorrect, correctAnswer, 'annuity-result');
+        }
+
+        function checkEgeAnswer() {
+            const userAnswer = document.getElementById('ege-answer').value;
+            const correctAnswer = getEgeCorrectAnswer();
+            
+            const isCorrect = userAnswer === correctAnswer;
+            
+            saveUserResponse(
+                'ЕГЭ',
+                userAnswer,
+                isCorrect,
+                correctAnswer
+            );
+            
+            showResult(isCorrect, correctAnswer, 'ege-result');
+        }
+
+        // Общая функция показа результата
+        function showResult(isCorrect, correctAnswer, resultElementId) {
+            const resultDiv = document.getElementById(resultElementId);
+            resultDiv.innerHTML = isCorrect 
+                ? `<p class="text-neon-green">✅ Верно! Правильный ответ: ${correctAnswer}</p>`
+                : `<p class="text-neon-pink">❌ Неверно. Правильный ответ: ${correctAnswer}</p>`;
+            resultDiv.classList.remove('hidden');
+            
+            // Обновляем прогресс
+            updateProgress();
+        }
+
+        // Функция обновления прогресса
+        async function updateProgress() {
             try {
                 const { data, error } = await supabase
-                    .from('financial_feedback')
-                    .select('*')
-                    .order('created_at', { ascending: false })
-                    .limit(10);
+                    .from('user_responses')
+                    .select('is_correct');
                 
                 if (error) throw error;
                 
-                const container = document.getElementById('feedback-list');
-                container.innerHTML = data.map(item => `
-                    <div class="neon-border p-4 rounded-lg">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h4 class="font-bold text-neon-blue">${item.name}</h4>
-                                <div class="flex mt-1">
-                                    ${'★'.repeat(item.rating)}${'☆'.repeat(5-item.rating)}
-                                </div>
-                            </div>
-                            <span class="text-xs text-white/50">${new Date(item.created_at).toLocaleString()}</span>
-                        </div>
-                        <p class="mt-2 text-white/80">${item.text}</p>
-                        <div class="mt-2 text-xs text-neon-purple">Раздел: ${item.task_type}</div>
-                    </div>
-                `).join('');
+                const total = data.length;
+                const correct = data.filter(r => r.is_correct).length;
+                const percentage = total > 0 ? Math.round((correct / total) * 100) : 0;
+                
+                document.getElementById('total-score').textContent = `${percentage}%`;
+                document.getElementById('progress-bar').style.width = `${percentage}%`;
+                
+                // Обновляем счетчики по разделам
+                updateSectionCounters();
             } catch (err) {
-                console.error('Ошибка загрузки отзывов:', err);
+                console.error('Ошибка загрузки прогресса:', err);
             }
         }
 
-        // Вспомогательная функция для уведомлений
-        function showAlert(message, type = 'success') {
-            const alert = document.createElement('div');
-            alert.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg ${
-                type === 'success' ? 'bg-green-900/80 text-neon-green' : 'bg-red-900/80 text-neon-pink'
-            }`;
-            alert.textContent = message;
-            document.body.appendChild(alert);
-            
-            setTimeout(() => alert.remove(), 3000);
+        // Функция обновления счетчиков по разделам
+        async function updateSectionCounters() {
+            try {
+                const { data, error } = await supabase
+                    .from('user_responses')
+                    .select('task_type, is_correct');
+                
+                if (error) throw error;
+                
+                // Группируем по типам задач
+                const sections = {};
+                data.forEach(response => {
+                    if (!sections[response.task_type]) {
+                        sections[response.task_type] = { total: 0, correct: 0 };
+                    }
+                    sections[response.task_type].total++;
+                    if (response.is_correct) {
+                        sections[response.task_type].correct++;
+                    }
+                });
+                
+                // Обновляем UI
+                for (const [section, stats] of Object.entries(sections)) {
+                    const elementId = `${section.toLowerCase().replace(' ', '-')}-score`;
+                    const element = document.getElementById(elementId);
+                    if (element) {
+                        element.textContent = `${stats.correct} из ${stats.total}`;
+                    }
+                }
+            } catch (err) {
+                console.error('Ошибка обновления счетчиков:', err);
+            }
         }
 
-        // Загружаем отзывы при старте
-        loadFeedback();
+        // Инициализация при загрузке
+        document.addEventListener('DOMContentLoaded', () => {
+            updateProgress();
+            loadFeedback(); // Загрузка отзывов
+        });
     </script>
+</body>
+</html>
 </body>
 </html>
