@@ -49,6 +49,26 @@
                     <div class="flex items-center space-x-2">  
                     </div>
                 </div>
+
+<script>
+        // Проверка через 1 секунду после загрузки страницы
+        setTimeout(() => {
+            // Проверяем наличие ключевых функций из scripts.js
+            if(typeof window.generateDepositTask !== 'function' || 
+               typeof window.checkDepositAnswer !== 'function') {
+                
+                console.error('Основной скрипт не загрузился! Пробуем резервный вариант...');
+                
+                // Создаем fallback-скрипт
+                const fallbackScript = document.createElement('script');
+                fallbackScript.src = 'script.js'; // Альтернативное имя файла
+                fallbackScript.onload = () => console.log('Резервный скрипт успешно загружен');
+                fallbackScript.onerror = () => console.error('Резервный скрипт тоже не загрузился!');
+                
+                document.body.appendChild(fallbackScript);
+            }
+        }, 1000);
+    </script>
                 
                 <!-- Level tabs -->
                 <div class="flex gap-3 mb-6">
