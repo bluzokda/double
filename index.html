@@ -469,5 +469,17 @@
         </footer>
     </div>
 <script src="scripts.js"></script>
-</body>
+<!-- Скрипт Supabase -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = 'ТВОЙ_URL';
+        const supabaseKey = 'ТВОЙ_KEY';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        async function getData() {
+            const { data } = await supabase.from('bluz').select('*');
+            console.log(data); // Данные появятся в консоли (F12)
+        }
+        getData();
+    </script></body>
 </html>
