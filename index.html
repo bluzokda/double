@@ -270,7 +270,7 @@
         // Модифицированные функции проверки ответов
         function checkDepositAnswer() {
             const userAnswer = document.getElementById('deposit-answer').value;
-            const correctAnswer = calculateDepositAnswer(); // Ваша функция расчета
+            const correctAnswer = currentDepositTask.correct;
             
             const isCorrect = Math.abs(userAnswer - correctAnswer) < 0.01;
             
@@ -288,7 +288,7 @@
 
         function checkAnnuityAnswer() {
             const userAnswer = document.getElementById('annuity-answer').value;
-            const correctAnswer = calculateAnnuityAnswer();
+            const correctAnswer = currentAnnuityTask.correct;
             
             const isCorrect = Math.abs(userAnswer - correctAnswer) < 0.01;
             
@@ -302,20 +302,61 @@
             showResult(isCorrect, correctAnswer, 'annuity-result');
         }
 
-        function checkEgeAnswer() {
-            const userAnswer = document.getElementById('ege-answer').value;
-            const correctAnswer = getEgeCorrectAnswer();
+        function checkDiffAnswer() {
+            const userAnswer = document.getElementById('diff-answer').value;
+            const parts = userAnswer.trim().split(/\s+/);
             
-            const isCorrect = userAnswer === correctAnswer;
+            if (parts.length !== 2) {
+                document.getElementById('diff-alert').textContent = 'Введите два числа через пробел';
+                document.getElementById('diff-alert').classList.remove('hidden');
+                return;
+            }
+            
+            const userAnswer1 = parseFloat(parts[0]);
+            const userAnswer2 = parseFloat(parts[1]);
+            const isCorrect = Math.abs(userAnswer1 - currentDiffTask.firstPayment) < 0.01 && 
+                             Math.abs(userAnswer2 - currentDiffTask.lastPayment) < 0.01;
             
             saveUserResponse(
-                'ЕГЭ',
+                'Дифференцированный кредит',
+                userAnswer,
+                isCorrect,
+                `${currentDiffTask.firstPayment} ${currentDiffTask.lastPayment}`
+            );
+            
+            showResult(isCorrect, 
+                      `${currentDiffTask.firstPayment} и ${currentDiffTask.lastPayment}`, 
+                      'diff-result');
+        }
+
+        function checkInvestAnswer() {
+            const userAnswer = document.getElementById('invest-answer').value;
+            const correctAnswer = currentInvestTask.correct;
+            
+            const isCorrect = Math.abs(userAnswer - correctAnswer) < 0.01;
+            
+            saveUserResponse(
+                'Инвестиции',
                 userAnswer,
                 isCorrect,
                 correctAnswer
             );
             
-            showResult(isCorrect, correctAnswer, 'ege-result');
+            showResult(isCorrect, correctAnswer, 'invest-result');
+        }
+
+        function checkEgeAnswer() {
+            const userAnswer = document.getElementById('ege-answer').value;
+            const isCorrect = userAnswer === currentEgeTask.correct;
+            
+            saveUserResponse(
+                'ЕГЭ',
+                userAnswer,
+                isCorrect,
+                currentEgeTask.correct
+            );
+            
+            showResult(isCorrect, currentEgeTask.correct, 'ege-result');
         }
 
         // Общая функция показа результата
@@ -330,70 +371,10 @@
             updateProgress();
         }
 
-        // Функция обновления прогресса
-        async function updateProgress() {
-            try {
-                const { data, error } = await supabase
-                    .from('user_responses')
-                    .select('is_correct');
-                
-                if (error) throw error;
-                
-                const total = data.length;
-                const correct = data.filter(r => r.is_correct).length;
-                const percentage = total > 0 ? Math.round((correct / total) * 100) : 0;
-                
-                document.getElementById('total-score').textContent = `${percentage}%`;
-                document.getElementById('progress-bar').style.width = `${percentage}%`;
-                
-                // Обновляем счетчики по разделам
-                updateSectionCounters();
-            } catch (err) {
-                console.error('Ошибка загрузки прогресса:', err);
-            }
-        }
-
-        // Функция обновления счетчиков по разделам
-        async function updateSectionCounters() {
-            try {
-                const { data, error } = await supabase
-                    .from('user_responses')
-                    .select('task_type, is_correct');
-                
-                if (error) throw error;
-                
-                // Группируем по типам задач
-                const sections = {};
-                data.forEach(response => {
-                    if (!sections[response.task_type]) {
-                        sections[response.task_type] = { total: 0, correct: 0 };
-                    }
-                    sections[response.task_type].total++;
-                    if (response.is_correct) {
-                        sections[response.task_type].correct++;
-                    }
-                });
-                
-                // Обновляем UI
-                for (const [section, stats] of Object.entries(sections)) {
-                    const elementId = `${section.toLowerCase().replace(' ', '-')}-score`;
-                    const element = document.getElementById(elementId);
-                    if (element) {
-                        element.textContent = `${stats.correct} из ${stats.total}`;
-                    }
-                }
-            } catch (err) {
-                console.error('Ошибка обновления счетчиков:', err);
-            }
-        }
-
         // Инициализация при загрузке
         document.addEventListener('DOMContentLoaded', () => {
             updateProgress();
-            loadFeedback(); // Загрузка отзывов
         });
     </script>
-</body>
-</html>
 </body>
 </html>
