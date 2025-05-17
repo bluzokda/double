@@ -146,32 +146,471 @@
                 
                 <!-- Вклады -->
                 <div id="deposit" class="tab-content">
-                    <!-- ... (остальное содержимое вкладок остается без изменений) ... -->
+                    <div class="mb-8">
+                        <div class="bg-gray-800/50 rounded-xl p-6 neon-border">
+                            <h3 class="text-xl font-bold mb-4 glow-text">Задача</h3>
+                            <p id="deposit-question" class="mb-4"></p>
+                            
+                            <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                                <div class="flex-1">
+                                    <label class="block text-sm font-medium text-neon-blue mb-1">Ваш ответ (руб.)</label>
+                                    <input type="number" id="deposit-answer" class="w-full px-4 py-3 rounded-lg input-neon focus:outline-none">
+                                </div>
+                            </div>
+                            
+                            <div id="deposit-alert" class="hidden bg-red-900/20 text-red-400 neon-border p-3 rounded-lg mb-4"></div>
+                            <div id="deposit-result" class="hidden"></div>
+                            
+                            <div class="flex gap-3">
+                                <button onclick="checkDepositAnswer()" class="btn-neon px-6 py-3 rounded-lg flex-1">
+                                    Проверить
+                                </button>
+                                <button onclick="generateDepositTask()" class="bg-gray-800/50 hover:bg-gray-700/50 text-white px-6 py-3 rounded-lg flex-1 border border-gray-700">
+                                    Новая задача
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center bg-gray-800/50 rounded-xl p-4 neon-border mb-8">
+                        <div>
+                            <span class="text-sm text-white/70">Правильных ответов:</span>
+                            <span id="deposit-score" class="ml-2 font-bold text-neon-green">0</span>
+                        </div>
+                        <div>
+                            <span class="text-sm text-white/70">Всего задач:</span>
+                            <span id="deposit-total" class="ml-2 font-bold">0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-800/50 rounded-xl p-6 neon-border">
+                        <h3 class="text-xl font-bold mb-4 glow-text">Теория</h3>
+                        <div class="space-y-4">
+                            <div class="theory-card p-4 rounded-lg">
+                                <h4 class="font-bold text-neon-blue mb-2">Формула простых процентов</h4>
+                                <p>Используется, когда проценты не капитализируются:</p>
+                                <p class="formula mt-2">S = P × (1 + r × n)</p>
+                                <p class="text-sm text-white/70 mt-2">Где: S - итоговая сумма, P - первоначальная сумма, r - процентная ставка (в долях), n - срок в годах.</p>
+                            </div>
+                            
+                            <div class="theory-card p-4 rounded-lg">
+                                <h4 class="font-bold text-neon-blue mb-2">Формула сложных процентов</h4>
+                                <p>Используется, когда проценты капитализируются (прибавляются к основной сумме):</p>
+                                <p class="formula mt-2">S = P × (1 + r)^n</p>
+                                <p class="text-sm text-white/70 mt-2">Где: S - итоговая сумма, P - первоначальная сумма, r - процентная ставка (в долях), n - срок в годах.</p>
+                            </div>
+                            
+                            <div class="theory-card p-4 rounded-lg">
+                                <h4 class="font-bold text-neon-blue mb-2">Ежемесячная капитализация</h4>
+                                <p>Когда проценты начисляются каждый месяц:</p>
+                                <p class="formula mt-2">S = P × (1 + r/12)^(12×n)</p>
+                                <p class="text-sm text-white/70 mt-2">Где: r - годовая ставка, n - срок в годах.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Аннуитетный кредит -->
                 <div id="annuity" class="tab-content hidden">
-                    <!-- ... -->
+                    <div class="mb-8">
+                        <div class="bg-gray-800/50 rounded-xl p-6 neon-border">
+                            <h3 class="text-xl font-bold mb-4 glow-text">Задача</h3>
+                            <p id="annuity-question" class="mb-4"></p>
+                            
+                            <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                                <div class="flex-1">
+                                    <label class="block text-sm font-medium text-neon-blue mb-1">Ваш ответ (руб.)</label>
+                                    <input type="number" id="annuity-answer" class="w-full px-4 py-3 rounded-lg input-neon focus:outline-none">
+                                </div>
+                            </div>
+                            
+                            <div id="annuity-alert" class="hidden bg-red-900/20 text-red-400 neon-border p-3 rounded-lg mb-4"></div>
+                            <div id="annuity-result" class="hidden"></div>
+                            
+                            <div class="flex gap-3">
+                                <button onclick="checkAnnuityAnswer()" class="btn-neon px-6 py-3 rounded-lg flex-1">
+                                    Проверить
+                                </button>
+                                <button onclick="generateAnnuityTask()" class="bg-gray-800/50 hover:bg-gray-700/50 text-white px-6 py-3 rounded-lg flex-1 border border-gray-700">
+                                    Новая задача
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center bg-gray-800/50 rounded-xl p-4 neon-border mb-8">
+                        <div>
+                            <span class="text-sm text-white/70">Правильных ответов:</span>
+                            <span id="annuity-score" class="ml-2 font-bold text-neon-green">0</span>
+                        </div>
+                        <div>
+                            <span class="text-sm text-white/70">Всего задач:</span>
+                            <span id="annuity-total" class="ml-2 font-bold">0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-800/50 rounded-xl p-6 neon-border">
+                        <h3 class="text-xl font-bold mb-4 glow-text">Теория</h3>
+                        <div class="space-y-4">
+                            <div class="theory-card p-4 rounded-lg">
+                                <h4 class="font-bold text-neon-blue mb-2">Формула аннуитетного платежа</h4>
+                                <p>Ежемесячный платеж по аннуитетной схеме:</p>
+                                <p class="formula mt-2">A = P × (r × (1 + r)^n) / ((1 + r)^n - 1)</p>
+                                <p class="text-sm text-white/70 mt-2">Где: A - ежемесячный платеж, P - сумма кредита, r - месячная ставка (годовая ставка / 12), n - количество месяцев.</p>
+                            </div>
+                            
+                            <div class="theory-card p-4 rounded-lg">
+                                <h4 class="font-bold text-neon-blue mb-2">Общая сумма выплат</h4>
+                                <p>Общая сумма, которую заплатит заемщик:</p>
+                                <p class="formula mt-2">S = A × n</p>
+                                <p class="text-sm text-white/70 mt-2">Где: A - ежемесячный платеж, n - количество месяцев.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Дифференцированный кредит -->
                 <div id="diff" class="tab-content hidden">
-                    <!-- ... -->
+                    <div class="mb-8">
+                        <div class="bg-gray-800/50 rounded-xl p-6 neon-border">
+                            <h3 class="text-xl font-bold mb-4 glow-text">Задача</h3>
+                            <p id="diff-question" class="mb-4"></p>
+                            
+                            <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                                <div class="flex-1">
+                                    <label class="block text-sm font-medium text-neon-blue mb-1">Ваш ответ (первый и последний платежи через пробел)</label>
+                                    <input type="text" id="diff-answer" class="w-full px-4 py-3 rounded-lg input-neon focus:outline-none" placeholder="Например: 15000 5000">
+                                </div>
+                            </div>
+                            
+                            <div id="diff-alert" class="hidden bg-red-900/20 text-red-400 neon-border p-3 rounded-lg mb-4"></div>
+                            <div id="diff-result" class="hidden"></div>
+                            
+                            <div class="flex gap-3">
+                                <button onclick="checkDiffAnswer()" class="btn-neon px-6 py-3 rounded-lg flex-1">
+                                    Проверить
+                                </button>
+                                <button onclick="generateDiffTask()" class="bg-gray-800/50 hover:bg-gray-700/50 text-white px-6 py-3 rounded-lg flex-1 border border-gray-700">
+                                    Новая задача
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center bg-gray-800/50 rounded-xl p-4 neon-border mb-8">
+                        <div>
+                            <span class="text-sm text-white/70">Правильных ответов:</span>
+                            <span id="diff-score" class="ml-2 font-bold text-neon-green">0</span>
+                        </div>
+                        <div>
+                            <span class="text-sm text-white/70">Всего задач:</span>
+                            <span id="diff-total" class="ml-2 font-bold">0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-800/50 rounded-xl p-6 neon-border">
+                        <h3 class="text-xl font-bold mb-4 glow-text">Теория</h3>
+                        <div class="space-y-4">
+                            <div class="theory-card p-4 rounded-lg">
+                                <h4 class="font-bold text-neon-blue mb-2">Формула дифференцированного платежа</h4>
+                                <p>Основная часть платежа (тело кредита):</p>
+                                <p class="formula mt-2">P<sub>осн</sub> = S / n</p>
+                                <p>Процентная часть платежа:</p>
+                                <p class="formula mt-2">P<sub>%</sub> = (S - P<sub>осн</sub> × (k - 1)) × r</p>
+                                <p class="text-sm text-white/70 mt-2">Где: S - сумма кредита, n - количество месяцев, r - месячная ставка, k - номер платежа.</p>
+                            </div>
+                            
+                            <div class="theory-card p-4 rounded-lg">
+                                <h4 class="font-bold text-neon-blue mb-2">Первый и последний платежи</h4>
+                                <p>Первый платеж:</p>
+                                <p class="formula mt-2">P<sub>1</sub> = S / n + S × r</p>
+                                <p>Последний платеж:</p>
+                                <p class="formula mt-2">P<sub>n</sub> = S / n + (S / n) × r</p>
+                                <p class="text-sm text-white/70 mt-2">Где: S - сумма кредита, n - количество месяцев, r - месячная ставка.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Инвестиции -->
                 <div id="invest" class="tab-content hidden">
-                    <!-- ... -->
+                    <div class="mb-8">
+                        <div class="bg-gray-800/50 rounded-xl p-6 neon-border">
+                            <h3 class="text-xl font-bold mb-4 glow-text">Задача</h3>
+                            <p id="invest-question" class="mb-4"></p>
+                            
+                            <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                                <div class="flex-1">
+                                    <label class="block text-sm font-medium text-neon-blue mb-1">Ваш ответ (руб.)</label>
+                                    <input type="number" id="invest-answer" class="w-full px-4 py-3 rounded-lg input-neon focus:outline-none">
+                                </div>
+                            </div>
+                            
+                            <div id="invest-alert" class="hidden bg-red-900/20 text-red-400 neon-border p-3 rounded-lg mb-4"></div>
+                            <div id="invest-result" class="hidden"></div>
+                            
+                            <div class="flex gap-3">
+                                <button onclick="checkInvestAnswer()" class="btn-neon px-6 py-3 rounded-lg flex-1">
+                                    Проверить
+                                </button>
+                                <button onclick="generateInvestTask()" class="bg-gray-800/50 hover:bg-gray-700/50 text-white px-6 py-3 rounded-lg flex-1 border border-gray-700">
+                                    Новая задача
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center bg-gray-800/50 rounded-xl p-4 neon-border mb-8">
+                        <div>
+                            <span class="text-sm text-white/70">Правильных ответов:</span>
+                            <span id="invest-score" class="ml-2 font-bold text-neon-green">0</span>
+                        </div>
+                        <div>
+                            <span class="text-sm text-white/70">Всего задач:</span>
+                            <span id="invest-total" class="ml-2 font-bold">0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-800/50 rounded-xl p-6 neon-border">
+                        <h3 class="text-xl font-bold mb-4 glow-text">Теория</h3>
+                        <div class="space-y-4">
+                            <div class="theory-card p-4 rounded-lg">
+                                <h4 class="font-bold text-neon-blue mb-2">Формула будущей стоимости</h4>
+                                <p>Стоимость инвестиций через n лет:</p>
+                                <p class="formula mt-2">FV = PV × (1 + r)^n</p>
+                                <p class="text-sm text-white/70 mt-2">Где: FV - будущая стоимость, PV - текущая стоимость, r - процентная ставка, n - срок в годах.</p>
+                            </div>
+                            
+                            <div class="theory-card p-4 rounded-lg">
+                                <h4 class="font-bold text-neon-blue mb-2">Формула текущей стоимости</h4>
+                                <p>Сколько нужно инвестировать сейчас, чтобы получить нужную сумму в будущем:</p>
+                                <p class="formula mt-2">PV = FV / (1 + r)^n</p>
+                                <p class="text-sm text-white/70 mt-2">Где: FV - будущая стоимость, r - процентная ставка, n - срок в годах.</p>
+                            </div>
+                            
+                            <div class="theory-card p-4 rounded-lg">
+                                <h4 class="font-bold text-neon-blue mb-2">Регулярные инвестиции</h4>
+                                <p>Будущая стоимость регулярных инвестиций:</p>
+                                <p class="formula mt-2">FV = PMT × [(1 + r)^n - 1] / r</p>
+                                <p class="text-sm text-white/70 mt-2">Где: PMT - сумма регулярного платежа, r - процентная ставка, n - количество периодов.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- ЕГЭ -->
                 <div id="ege" class="tab-content hidden">
-                    <!-- ... -->
+                    <div class="mb-8">
+                        <div class="bg-gray-800/50 rounded-xl p-6 neon-border">
+                            <div class="flex justify-center mb-6">
+                                <div class="inline-flex rounded-lg overflow-hidden">
+                                    <button id="ege-basic-btn" class="px-4 py-2 rounded-l-lg font-medium bg-red-900/50 text-white border border-red-500" onclick="setEgeLevel('basic')">
+                                        Базовый уровень
+                                    </button>
+                                    <button id="ege-advanced-btn" class="px-4 py-2 rounded-r-lg font-medium bg-gray-800/50 text-white/70 border border-gray-700" onclick="setEgeLevel('advanced')">
+                                        Повышенный уровень
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <h3 class="text-xl font-bold mb-4 glow-text">Задача</h3>
+                            <p id="ege-question" class="mb-4"></p>
+                            
+                            <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                                <div class="flex-1">
+                                    <label class="block text-sm font-medium text-neon-blue mb-1">Ваш ответ</label>
+                                    <input type="text" id="ege-answer" class="w-full px-4 py-3 rounded-lg input-neon focus:outline-none">
+                                </div>
+                            </div>
+                            
+                            <div id="ege-alert" class="hidden bg-red-900/20 text-red-400 neon-border p-3 rounded-lg mb-4"></div>
+                            <div id="ege-result" class="hidden"></div>
+                            
+                            <div class="flex gap-3">
+                                <button onclick="checkEgeAnswer()" class="btn-neon px-6 py-3 rounded-lg flex-1">
+                                    Проверить
+                                </button>
+                                <button id="ege-new-task-btn" onclick="generateEgeTask()" class="bg-gray-800/50 hover:bg-gray-700/50 text-white px-6 py-3 rounded-lg flex-1 border border-gray-700">
+                                    Новая задача
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center bg-gray-800/50 rounded-xl p-4 neon-border mb-8">
+                        <div>
+                            <span class="text-sm text-white/70">Набранные баллы:</span>
+                            <span id="ege-score" class="ml-2 font-bold text-neon-green">0</span>
+                        </div>
+                        <div>
+                            <span class="text-sm text-white/70">Решено задач:</span>
+                            <span id="ege-tasks" class="ml-2 font-bold">0/10</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-800/50 rounded-xl p-6 neon-border">
+                        <h3 class="text-xl font-bold mb-4 glow-text">Рекомендации</h3>
+                        <div class="space-y-4">
+                            <div class="theory-card p-4 rounded-lg">
+                                <h4 class="font-bold text-neon-blue mb-2">Задачи №15 (базовый уровень)</h4>
+                                <p>1. Внимательно читайте условие задачи.</p>
+                                <p>2. Определите тип задачи (вклады, кредиты, инвестиции).</p>
+                                <p>3. Выберите соответствующую формулу.</p>
+                                <p>4. Подставьте значения и выполните расчеты.</p>
+                                <p>5. Проверьте единицы измерения и округление.</p>
+                            </div>
+                            
+                            <div class="theory-card p-4 rounded-lg">
+                                <h4 class="font-bold text-neon-blue mb-2">Задачи №17 (повышенный уровень)</h4>
+                                <p>1. Анализируйте схему выплат или начислений.</p>
+                                <p>2. Составляйте уравнения или последовательности платежей.</p>
+                                <p>3. Используйте логику для сложных случаев.</p>
+                                <p>4. Проверяйте промежуточные результаты.</p>
+                                <p>5. Учитывайте все условия задачи.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Теория -->
                 <div id="theory" class="tab-content hidden">
-                    <!-- ... -->
+                    <div class="bg-gray-800/50 rounded-xl p-6 neon-border mb-8">
+                        <h3 class="text-xl font-bold mb-6 glow-text">Основные финансовые формулы</h3>
+                        
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <!-- Вклады -->
+                            <div class="theory-card p-5 rounded-lg">
+                                <h4 class="font-bold text-2xl text-neon-blue mb-4 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Вклады
+                                </h4>
+                                
+                                <div class="space-y-4">
+                                    <div>
+                                        <h5 class="font-semibold text-neon-purple mb-1">Простые проценты</h5>
+                                        <p class="formula">S = P × (1 + r × n)</p>
+                                        <p class="text-sm text-white/70 mt-1">Где: S - итоговая сумма, P - первоначальный вклад, r - процентная ставка (в долях), n - срок в годах.</p>
+                                    </div>
+                                    
+                                    <div>
+                                        <h5 class="font-semibold text-neon-purple mb-1">Сложные проценты</h5>
+                                        <p class="formula">S = P × (1 + r)<sup>n</sup></p>
+                                        <p class="text-sm text-white/70 mt-1">Где проценты начисляются на сумму с предыдущими процентами.</p>
+                                    </div>
+                                    
+                                    <div>
+                                        <h5 class="font-semibold text-neon-purple mb-1">Ежемесячная капитализация</h5>
+                                        <p class="formula">S = P × (1 + r/12)<sup>12×n</sup></p>
+                                        <p class="text-sm text-white/70 mt-1">Когда проценты начисляются каждый месяц.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Кредиты -->
+                            <div class="theory-card p-5 rounded-lg">
+                                <h4 class="font-bold text-2xl text-neon-blue mb-4 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                                    </svg>
+                                    Кредиты
+                                </h4>
+                                
+                                <div class="space-y-4">
+                                    <div>
+                                        <h5 class="font-semibold text-neon-purple mb-1">Аннуитетный платеж</h5>
+                                        <p class="formula">A = P × (r × (1 + r)<sup>n</sup>) / ((1 + r)<sup>n</sup> - 1)</p>
+                                        <p class="text-sm text-white/70 mt-1">Где: A - ежемесячный платеж, P - сумма кредита, r - месячная ставка, n - количество месяцев.</p>
+                                    </div>
+                                    
+                                    <div>
+                                        <h5 class="font-semibold text-neon-purple mb-1">Дифференцированный платеж</h5>
+                                        <p class="formula">P<sub>k</sub> = P/n + (P - P×(k-1)/n) × r</p>
+                                        <p class="text-sm text-white/70 mt-1">Где: P<sub>k</sub> - платеж в месяц k, P - сумма кредита, n - срок в месяцах, r - месячная ставка.</p>
+                                    </div>
+                                    
+                                    <div>
+                                        <h5 class="font-semibold text-neon-purple mb-1">Общая переплата</h5>
+                                        <p class="formula">Переплата = Сумма всех платежей - Сумма кредита</p>
+                                        <p class="text-sm text-white/70 mt-1">Показывает, сколько заемщик переплатит банку.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Инвестиции -->
+                            <div class="theory-card p-5 rounded-lg">
+                                <h4 class="font-bold text-2xl text-neon-blue mb-4 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                    Инвестиции
+                                </h4>
+                                
+                                <div class="space-y-4">
+                                    <div>
+                                        <h5 class="font-semibold text-neon-purple mb-1">Будущая стоимость</h5>
+                                        <p class="formula">FV = PV × (1 + r)<sup>n</sup></p>
+                                        <p class="text-sm text-white/70 mt-1">Где: FV - будущая стоимость, PV - текущая стоимость, r - ставка, n - срок.</p>
+                                    </div>
+                                    
+                                    <div>
+                                        <h5 class="font-semibold text-neon-purple mb-1">Текущая стоимость</h5>
+                                        <p class="formula">PV = FV / (1 + r)<sup>n</sup></p>
+                                        <p class="text-sm text-white/70 mt-1">Сколько нужно инвестировать сейчас для получения нужной суммы в будущем.</p>
+                                    </div>
+                                    
+                                    <div>
+                                        <h5 class="font-semibold text-neon-purple mb-1">Регулярные инвестиции</h5>
+                                        <p class="formula">FV = PMT × [(1 + r)<sup>n</sup> - 1] / r</p>
+                                        <p class="text-sm text-white/70 mt-1">Где: PMT - сумма регулярного платежа, r - ставка за период, n - количество периодов.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- ЕГЭ -->
+                            <div class="theory-card p-5 rounded-lg">
+                                <h4 class="font-bold text-2xl text-neon-blue mb-4 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                    </svg>
+                                    Подготовка к ЕГЭ
+                                </h4>
+                                
+                                <div class="space-y-4">
+                                    <div>
+                                        <h5 class="font-semibold text-neon-purple mb-1">Задача №15</h5>
+                                        <p>Базовый уровень. Обычно включает:</p>
+                                        <ul class="list-disc list-inside text-sm text-white/70 mt-1">
+                                            <li>Расчет вкладов с капитализацией</li>
+                                            <li>Простые кредитные расчеты</li>
+                                            <li>Определение выгодных условий</li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <div>
+                                        <h5 class="font-semibold text-neon-purple mb-1">Задача №17</h5>
+                                        <p>Повышенный уровень. Может включать:</p>
+                                        <ul class="list-disc list-inside text-sm text-white/70 mt-1">
+                                            <li>Кредиты с изменяющимися платежами</li>
+                                            <li>Комбинации вкладов и кредитов</li>
+                                            <li>Оптимизационные задачи</li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <div>
+                                        <h5 class="font-semibold text-neon-purple mb-1">Советы</h5>
+                                        <ul class="list-disc list-inside text-sm text-white/70 mt-1">
+                                            <li>Внимательно читайте условие</li>
+                                            <li>Проверяйте единицы измерения</li>
+                                            <li>Округляйте только в конце</li>
+                                            <li>Рисуйте схемы платежей</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Прогресс -->
