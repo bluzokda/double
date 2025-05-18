@@ -15,6 +15,13 @@ let currentLevel = 'basic'; // 'basic' или 'advanced'
 let egeTasksCompleted = 0;
 let egeTotalScore = 0;
 
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    createBubbles();
+    generateDepositTask();
+    setEgeLevel('basic');
+});
+
 // Создание анимированного фона
 function createBubbles() {
     const container = document.getElementById('bubbles-container');
@@ -139,286 +146,22 @@ function updateProgress() {
     document.getElementById('total-score').textContent = `${progress}%`;
 }
 
-// Инициализация
-document.addEventListener('DOMContentLoaded', function() {
-    createBubbles();
-    generateDepositTask();
-    setEgeLevel('basic');
-});
-
-function checkDepositAnswer() {
-    const alertDiv = document.getElementById('deposit-alert');
-    const answerInput = document.getElementById('deposit-answer');
-    const resultDiv = document.getElementById('deposit-result');
-    
-    if (answeredDeposit) {
-        resultDiv.textContent = "Вы уже ответили! Нажмите 'Новая задача'.";
-        resultDiv.className = 'bg-yellow-900/20 text-yellow-400 neon-border';
-        resultDiv.classList.remove('hidden');
-        return;
-    }
-    
-    const userInput = answerInput.value;
-    const userAnswer = parseFloat(userInput);
-    
-    if (isNaN(userAnswer)) {
-        alertDiv.textContent = 'Пожалуйста, введите корректное число';
-        alertDiv.classList.remove('hidden');
-        return;
-    }
-    
-    answeredDeposit = true;
-    totalTasks++;
-    
-    const roundedAnswer = Math.round(userAnswer * 100) / 100;
-    const isCorrect = Math.abs(roundedAnswer - currentDepositTask.correct) < 0.01;
-    
-    if (isCorrect) {
-        resultDiv.textContent = `✅ Правильно! Ответ: ${currentDepositTask.correct.toLocaleString('ru-RU')} руб.`;
-        resultDiv.className = 'bg-green-900/20 text-green-400 neon-border';
-        score++;
-    } else {
-        resultDiv.textContent = `❌ Неправильно. Правильный ответ: ${currentDepositTask.correct.toLocaleString('ru-RU')} руб.`;
-        resultDiv.className = 'bg-red-900/20 text-red-400 neon-border';
-    }
-    
-    resultDiv.classList.remove('hidden');
-    answerInput.disabled = true;
-    
-    const scoreSpan = document.getElementById('deposit-score');
-    scoreSpan.textContent = parseInt(scoreSpan.textContent) + (isCorrect ? 1 : 0);
-    const totalSpan = document.getElementById('deposit-total');
-    totalSpan.textContent = parseInt(totalSpan.textContent) + 1;
-    
-    updateProgress();
+// Вспомогательные функции
+function formatNumber(num) {
+    return new Intl.NumberFormat('ru-RU').format(Math.round(num));
 }
 
-function checkAnnuityAnswer() {
-    const alertDiv = document.getElementById('annuity-alert');
-    const answerInput = document.getElementById('annuity-answer');
-    const resultDiv = document.getElementById('annuity-result');
+function getYearWord(years) {
+    const lastDigit = years % 10;
+    const lastTwoDigits = years % 100;
     
-    if (answeredAnnuity) {
-        resultDiv.textContent = "Вы уже ответили! Нажмите 'Новая задача'.";
-        resultDiv.className = 'bg-yellow-900/20 text-yellow-400 neon-border';
-        resultDiv.classList.remove('hidden');
-        return;
-    }
-    
-    const userInput = answerInput.value;
-    const userAnswer = parseFloat(userInput);
-    
-    if (isNaN(userAnswer)) {
-        alertDiv.textContent = 'Пожалуйста, введите корректное число';
-        alertDiv.classList.remove('hidden');
-        return;
-    }
-    
-    answeredAnnuity = true;
-    totalTasks++;
-    
-    const roundedAnswer = Math.round(userAnswer * 100) / 100;
-    const isCorrect = Math.abs(roundedAnswer - currentAnnuityTask.correct) < 0.01;
-    
-    if (isCorrect) {
-        resultDiv.textContent = `✅ Правильно! Ответ: ${currentAnnuityTask.correct.toLocaleString('ru-RU')} руб.`;
-        resultDiv.className = 'bg-green-900/20 text-green-400 neon-border';
-        score++;
-    } else {
-        resultDiv.textContent = `❌ Неправильно. Правильный ответ: ${currentAnnuityTask.correct.toLocaleString('ru-RU')} руб.`;
-        resultDiv.className = 'bg-red-900/20 text-red-400 neon-border';
-    }
-    
-    resultDiv.classList.remove('hidden');
-    answerInput.disabled = true;
-    
-    const scoreSpan = document.getElementById('annuity-score');
-    scoreSpan.textContent = parseInt(scoreSpan.textContent) + (isCorrect ? 1 : 0);
-    const totalSpan = document.getElementById('annuity-total');
-    totalSpan.textContent = parseInt(totalSpan.textContent) + 1;
-    
-    updateProgress();
+    if (lastTwoDigits >= 11 && lastTwoDigits <= 19) return 'лет';
+    if (lastDigit === 1) return 'год';
+    if (lastDigit >= 2 && lastDigit <= 4) return 'года';
+    return 'лет';
 }
 
-function checkDiffAnswer() {
-    const alertDiv = document.getElementById('diff-alert');
-    const answerInput = document.getElementById('diff-answer');
-    const resultDiv = document.getElementById('diff-result');
-    
-    if (answeredDiff) {
-        resultDiv.textContent = "Вы уже ответили! Нажмите 'Новая задача'.";
-        resultDiv.className = 'bg-yellow-900/20 text-yellow-400 neon-border';
-        resultDiv.classList.remove('hidden');
-        return;
-    }
-    
-    const userInput = answerInput.value;
-    const parts = userInput.trim().split(/\s+/);
-    
-    if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) {
-        alertDiv.textContent = 'Пожалуйста, введите два числа через пробел';
-        alertDiv.classList.remove('hidden');
-        return;
-    }
-    
-    answeredDiff = true;
-    totalTasks++;
-    
-    const userAnswer1 = parseFloat(parts[0]);
-    const userAnswer2 = parseFloat(parts[1]);
-    const isCorrect = Math.abs(userAnswer1 - currentDiffTask.firstPayment) < 0.01 && 
-                     Math.abs(userAnswer2 - currentDiffTask.lastPayment) < 0.01;
-    
-    if (isCorrect) {
-        resultDiv.textContent = `✅ Правильно! Ответ: ${currentDiffTask.firstPayment.toLocaleString('ru-RU')} руб. и ${currentDiffTask.lastPayment.toLocaleString('ru-RU')} руб.`;
-        resultDiv.className = 'bg-green-900/20 text-green-400 neon-border';
-        score++;
-    } else {
-        resultDiv.textContent = `❌ Неправильно. Правильный ответ: ${currentDiffTask.firstPayment.toLocaleString('ru-RU')} руб. и ${currentDiffTask.lastPayment.toLocaleString('ru-RU')} руб.`;
-        resultDiv.className = 'bg-red-900/20 text-red-400 neon-border';
-    }
-    
-    resultDiv.classList.remove('hidden');
-    answerInput.disabled = true;
-    
-    const scoreSpan = document.getElementById('diff-score');
-    scoreSpan.textContent = parseInt(scoreSpan.textContent) + (isCorrect ? 1 : 0);
-    const totalSpan = document.getElementById('diff-total');
-    totalSpan.textContent = parseInt(totalSpan.textContent) + 1;
-    
-    updateProgress();
-}
-
-function checkInvestAnswer() {
-    const alertDiv = document.getElementById('invest-alert');
-    const answerInput = document.getElementById('invest-answer');
-    const resultDiv = document.getElementById('invest-result');
-    
-    if (answeredInvest) {
-        resultDiv.textContent = "Вы уже ответили! Нажмите 'Новая задача'.";
-        resultDiv.className = 'bg-yellow-900/20 text-yellow-400 neon-border';
-        resultDiv.classList.remove('hidden');
-        return;
-    }
-    
-    const userInput = answerInput.value;
-    const userAnswer = parseFloat(userInput);
-    
-    if (isNaN(userAnswer)) {
-        alertDiv.textContent = 'Пожалуйста, введите корректное число';
-        alertDiv.classList.remove('hidden');
-        return;
-    }
-    
-    answeredInvest = true;
-    totalTasks++;
-    
-    const roundedAnswer = Math.round(userAnswer * 100) / 100;
-    const isCorrect = Math.abs(roundedAnswer - currentInvestTask.correct) < 0.01;
-    
-    if (isCorrect) {
-        resultDiv.textContent = `✅ Правильно! Ответ: ${currentInvestTask.correct.toLocaleString('ru-RU')} руб.`;
-        resultDiv.className = 'bg-green-900/20 text-green-400 neon-border';
-        score++;
-    } else {
-        resultDiv.textContent = `❌ Неправильно. Правильный ответ: ${currentInvestTask.correct.toLocaleString('ru-RU')} руб.`;
-        resultDiv.className = 'bg-red-900/20 text-red-400 neon-border';
-    }
-    
-    resultDiv.classList.remove('hidden');
-    answerInput.disabled = true;
-    
-    const scoreSpan = document.getElementById('invest-score');
-    scoreSpan.textContent = parseInt(scoreSpan.textContent) + (isCorrect ? 1 : 0);
-    const totalSpan = document.getElementById('invest-total');
-    totalSpan.textContent = parseInt(totalSpan.textContent) + 1;
-    
-    updateProgress();
-}
-
-function checkEgeAnswer() {
-    const alertDiv = document.getElementById('ege-alert');
-    const answerInput = document.getElementById('ege-answer');
-    const resultDiv = document.getElementById('ege-result');
-    
-    if (answeredEge) {
-        resultDiv.innerHTML = `
-            <div class="flex items-start">
-                <div class="mr-2">⚠️</div>
-                <div>Вы уже ответили! Нажмите 'Новая задача'.</div>
-            </div>
-        `;
-        resultDiv.className = 'result-container bg-yellow-900/20 text-yellow-400 neon-border';
-        resultDiv.classList.remove('hidden');
-        return;
-    }
-    
-    const userInput = answerInput.value.trim();
-    
-    if (userInput === '') {
-        alertDiv.textContent = 'Пожалуйста, введите ответ';
-        alertDiv.classList.remove('hidden');
-        return;
-    }
-    
-    answeredEge = true;
-    totalTasks++;
-    egeTasksCompleted++;
-    
-    const isCorrect = userInput === currentEgeTask.correct;
-    const pointsEarned = currentLevel === 'basic' ? 1 : 2;
-    
-    if (isCorrect) {
-        egeTotalScore += pointsEarned;
-        resultDiv.innerHTML = `
-            <div class="flex items-start text-sm">
-                <div class="mr-2 mt-1">✅</div>
-                <div>
-                    <p class="font-bold text-green-400">Правильно! +${pointsEarned} балл${pointsEarned > 1 ? 'а' : ''}</p>
-                    <p class="mt-1">Ответ: <span class="font-mono">${currentEgeTask.correct}</span></p>
-                    <details class="mt-1 text-gray-300">
-                        <summary class="cursor-pointer hover:text-white">Показать решение</summary>
-                        <div class="mt-1 bg-gray-900/50 p-2 rounded">${currentEgeTask.solution}</div>
-                    </details>
-                </div>
-            </div>
-        `;
-        resultDiv.className = 'result-container bg-green-900/10 neon-border';
-    } else {
-        resultDiv.innerHTML = `
-            <div class="flex items-start text-sm">
-                <div class="mr-2 mt-1">❌</div>
-                <div>
-                    <p class="font-bold text-red-400">Неправильно</p>
-                    <p class="mt-1">Правильный ответ: <span class="font-mono">${currentEgeTask.correct}</span></p>
-                    <details class="mt-1 text-gray-300" open>
-                        <summary class="cursor-pointer hover:text-white">Решение</summary>
-                        <div class="mt-1 bg-gray-900/50 p-2 rounded">${currentEgeTask.solution}</div>
-                    </details>
-                </div>
-            </div>
-        `;
-        resultDiv.className = 'result-container bg-red-900/10 neon-border';
-    }
-    
-    resultDiv.classList.remove('hidden');
-    answerInput.disabled = true;
-
-    // Обновление счетчиков
-    document.getElementById('ege-score').textContent = egeTotalScore;
-    document.getElementById('ege-tasks').textContent = `${egeTasksCompleted}/10`;
-    
-    // Проверка завершения 10 задач
-    if (egeTasksCompleted >= 10) {
-        const maxPossible = currentLevel === 'basic' ? 10 : 20;
-        resultDiv.innerHTML += `<br><br><strong>Тест завершен!</strong> Вы набрали ${egeTotalScore} баллов из ${maxPossible} возможных.`;
-        document.getElementById('ege-answer').disabled = true;
-        document.getElementById('ege-new-task-btn').disabled = true;
-    }
-    
-    updateProgress();
-}
-
+// ========== Функции для работы с вкладами ==========
 function generateDepositTask() {
     let principal, rate, years, isCompound;
     
@@ -474,6 +217,54 @@ function generateDepositTask() {
     answeredDeposit = false;
 }
 
+function checkDepositAnswer() {
+    const alertDiv = document.getElementById('deposit-alert');
+    const answerInput = document.getElementById('deposit-answer');
+    const resultDiv = document.getElementById('deposit-result');
+    
+    if (answeredDeposit) {
+        resultDiv.textContent = "Вы уже ответили! Нажмите 'Новая задача'.";
+        resultDiv.className = 'bg-yellow-900/20 text-yellow-400 neon-border';
+        resultDiv.classList.remove('hidden');
+        return;
+    }
+    
+    const userInput = answerInput.value;
+    const userAnswer = parseFloat(userInput);
+    
+    if (isNaN(userAnswer)) {
+        alertDiv.textContent = 'Пожалуйста, введите корректное число';
+        alertDiv.classList.remove('hidden');
+        return;
+    }
+    
+    answeredDeposit = true;
+    totalTasks++;
+    
+    const roundedAnswer = Math.round(userAnswer * 100) / 100;
+    const isCorrect = Math.abs(roundedAnswer - currentDepositTask.correct) < 0.01;
+    
+    if (isCorrect) {
+        resultDiv.textContent = `✅ Правильно! Ответ: ${currentDepositTask.correct.toLocaleString('ru-RU')} руб.`;
+        resultDiv.className = 'bg-green-900/20 text-green-400 neon-border';
+        score++;
+    } else {
+        resultDiv.textContent = `❌ Неправильно. Правильный ответ: ${currentDepositTask.correct.toLocaleString('ru-RU')} руб.`;
+        resultDiv.className = 'bg-red-900/20 text-red-400 neon-border';
+    }
+    
+    resultDiv.classList.remove('hidden');
+    answerInput.disabled = true;
+    
+    const scoreSpan = document.getElementById('deposit-score');
+    scoreSpan.textContent = parseInt(scoreSpan.textContent) + (isCorrect ? 1 : 0);
+    const totalSpan = document.getElementById('deposit-total');
+    totalSpan.textContent = parseInt(totalSpan.textContent) + 1;
+    
+    updateProgress();
+}
+
+// ========== Функции для работы с аннуитетными кредитами ==========
 function generateAnnuityTask() {
     let principal, rate, years;
     
@@ -526,6 +317,54 @@ function generateAnnuityTask() {
     answeredAnnuity = false;
 }
 
+function checkAnnuityAnswer() {
+    const alertDiv = document.getElementById('annuity-alert');
+    const answerInput = document.getElementById('annuity-answer');
+    const resultDiv = document.getElementById('annuity-result');
+    
+    if (answeredAnnuity) {
+        resultDiv.textContent = "Вы уже ответили! Нажмите 'Новая задача'.";
+        resultDiv.className = 'bg-yellow-900/20 text-yellow-400 neon-border';
+        resultDiv.classList.remove('hidden');
+        return;
+    }
+    
+    const userInput = answerInput.value;
+    const userAnswer = parseFloat(userInput);
+    
+    if (isNaN(userAnswer)) {
+        alertDiv.textContent = 'Пожалуйста, введите корректное число';
+        alertDiv.classList.remove('hidden');
+        return;
+    }
+    
+    answeredAnnuity = true;
+    totalTasks++;
+    
+    const roundedAnswer = Math.round(userAnswer * 100) / 100;
+    const isCorrect = Math.abs(roundedAnswer - currentAnnuityTask.correct) < 0.01;
+    
+    if (isCorrect) {
+        resultDiv.textContent = `✅ Правильно! Ответ: ${currentAnnuityTask.correct.toLocaleString('ru-RU')} руб.`;
+        resultDiv.className = 'bg-green-900/20 text-green-400 neon-border';
+        score++;
+    } else {
+        resultDiv.textContent = `❌ Неправильно. Правильный ответ: ${currentAnnuityTask.correct.toLocaleString('ru-RU')} руб.`;
+        resultDiv.className = 'bg-red-900/20 text-red-400 neon-border';
+    }
+    
+    resultDiv.classList.remove('hidden');
+    answerInput.disabled = true;
+    
+    const scoreSpan = document.getElementById('annuity-score');
+    scoreSpan.textContent = parseInt(scoreSpan.textContent) + (isCorrect ? 1 : 0);
+    const totalSpan = document.getElementById('annuity-total');
+    totalSpan.textContent = parseInt(totalSpan.textContent) + 1;
+    
+    updateProgress();
+}
+
+// ========== Функции для работы с дифференцированными кредитами ==========
 function generateDiffTask() {
     let principal, rate, years;
     
@@ -580,6 +419,56 @@ function generateDiffTask() {
     answeredDiff = false;
 }
 
+function checkDiffAnswer() {
+    const alertDiv = document.getElementById('diff-alert');
+    const answerInput = document.getElementById('diff-answer');
+    const resultDiv = document.getElementById('diff-result');
+    
+    if (answeredDiff) {
+        resultDiv.textContent = "Вы уже ответили! Нажмите 'Новая задача'.";
+        resultDiv.className = 'bg-yellow-900/20 text-yellow-400 neon-border';
+        resultDiv.classList.remove('hidden');
+        return;
+    }
+    
+    const userInput = answerInput.value;
+    const parts = userInput.trim().split(/\s+/);
+    
+    if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) {
+        alertDiv.textContent = 'Пожалуйста, введите два числа через пробел';
+        alertDiv.classList.remove('hidden');
+        return;
+    }
+    
+    answeredDiff = true;
+    totalTasks++;
+    
+    const userAnswer1 = parseFloat(parts[0]);
+    const userAnswer2 = parseFloat(parts[1]);
+    const isCorrect = Math.abs(userAnswer1 - currentDiffTask.firstPayment) < 0.01 && 
+                     Math.abs(userAnswer2 - currentDiffTask.lastPayment) < 0.01;
+    
+    if (isCorrect) {
+        resultDiv.textContent = `✅ Правильно! Ответ: ${currentDiffTask.firstPayment.toLocaleString('ru-RU')} руб. и ${currentDiffTask.lastPayment.toLocaleString('ru-RU')} руб.`;
+        resultDiv.className = 'bg-green-900/20 text-green-400 neon-border';
+        score++;
+    } else {
+        resultDiv.textContent = `❌ Неправильно. Правильный ответ: ${currentDiffTask.firstPayment.toLocaleString('ru-RU')} руб. и ${currentDiffTask.lastPayment.toLocaleString('ru-RU')} руб.`;
+        resultDiv.className = 'bg-red-900/20 text-red-400 neon-border';
+    }
+    
+    resultDiv.classList.remove('hidden');
+    answerInput.disabled = true;
+    
+    const scoreSpan = document.getElementById('diff-score');
+    scoreSpan.textContent = parseInt(scoreSpan.textContent) + (isCorrect ? 1 : 0);
+    const totalSpan = document.getElementById('diff-total');
+    totalSpan.textContent = parseInt(totalSpan.textContent) + 1;
+    
+    updateProgress();
+}
+
+// ========== Функции для работы с инвестициями ==========
 function generateInvestTask() {
     let target, rate, years;
     
@@ -633,6 +522,54 @@ function generateInvestTask() {
     answeredInvest = false;
 }
 
+function checkInvestAnswer() {
+    const alertDiv = document.getElementById('invest-alert');
+    const answerInput = document.getElementById('invest-answer');
+    const resultDiv = document.getElementById('invest-result');
+    
+    if (answeredInvest) {
+        resultDiv.textContent = "Вы уже ответили! Нажмите 'Новая задача'.";
+        resultDiv.className = 'bg-yellow-900/20 text-yellow-400 neon-border';
+        resultDiv.classList.remove('hidden');
+        return;
+    }
+    
+    const userInput = answerInput.value;
+    const userAnswer = parseFloat(userInput);
+    
+    if (isNaN(userAnswer)) {
+        alertDiv.textContent = 'Пожалуйста, введите корректное число';
+        alertDiv.classList.remove('hidden');
+        return;
+    }
+    
+    answeredInvest = true;
+    totalTasks++;
+    
+    const roundedAnswer = Math.round(userAnswer * 100) / 100;
+    const isCorrect = Math.abs(roundedAnswer - currentInvestTask.correct) < 0.01;
+    
+    if (isCorrect) {
+        resultDiv.textContent = `✅ Правильно! Ответ: ${currentInvestTask.correct.toLocaleString('ru-RU')} руб.`;
+        resultDiv.className = 'bg-green-900/20 text-green-400 neon-border';
+        score++;
+    } else {
+        resultDiv.textContent = `❌ Неправильно. Правильный ответ: ${currentInvestTask.correct.toLocaleString('ru-RU')} руб.`;
+        resultDiv.className = 'bg-red-900/20 text-red-400 neon-border';
+    }
+    
+    resultDiv.classList.remove('hidden');
+    answerInput.disabled = true;
+    
+    const scoreSpan = document.getElementById('invest-score');
+    scoreSpan.textContent = parseInt(scoreSpan.textContent) + (isCorrect ? 1 : 0);
+    const totalSpan = document.getElementById('invest-total');
+    totalSpan.textContent = parseInt(totalSpan.textContent) + 1;
+    
+    updateProgress();
+}
+
+// ========== Функции для работы с задачами ЕГЭ ==========
 function generateEgeTask() {
     // Проверка завершения 10 задач
     if (egeTasksCompleted >= 10) {
@@ -790,17 +727,85 @@ function generateAdvancedEgeTask() {
     answeredEge = false;
 }
 
-// Вспомогательные функции
-function formatNumber(num) {
-    return new Intl.NumberFormat('ru-RU').format(Math.round(num));
-}
-
-function getYearWord(years) {
-    const lastDigit = years % 10;
-    const lastTwoDigits = years % 100;
+function checkEgeAnswer() {
+    const alertDiv = document.getElementById('ege-alert');
+    const answerInput = document.getElementById('ege-answer');
+    const resultDiv = document.getElementById('ege-result');
     
-    if (lastTwoDigits >= 11 && lastTwoDigits <= 19) return 'лет';
-    if (lastDigit === 1) return 'год';
-    if (lastDigit >= 2 && lastDigit <= 4) return 'года';
-    return 'лет';
+    if (answeredEge) {
+        resultDiv.innerHTML = `
+            <div class="flex items-start">
+                <div class="mr-2">⚠️</div>
+                <div>Вы уже ответили! Нажмите 'Новая задача'.</div>
+            </div>
+        `;
+        resultDiv.className = 'result-container bg-yellow-900/20 text-yellow-400 neon-border';
+        resultDiv.classList.remove('hidden');
+        return;
+    }
+    
+    const userInput = answerInput.value.trim();
+    
+    if (userInput === '') {
+        alertDiv.textContent = 'Пожалуйста, введите ответ';
+        alertDiv.classList.remove('hidden');
+        return;
+    }
+    
+    answeredEge = true;
+    totalTasks++;
+    egeTasksCompleted++;
+    
+    const isCorrect = userInput === currentEgeTask.correct;
+    const pointsEarned = currentLevel === 'basic' ? 1 : 2;
+    
+    if (isCorrect) {
+        egeTotalScore += pointsEarned;
+        resultDiv.innerHTML = `
+            <div class="flex items-start text-sm">
+                <div class="mr-2 mt-1">✅</div>
+                <div>
+                    <p class="font-bold text-green-400">Правильно! +${pointsEarned} балл${pointsEarned > 1 ? 'а' : ''}</p>
+                    <p class="mt-1">Ответ: <span class="font-mono">${currentEgeTask.correct}</span></p>
+                    <details class="mt-1 text-gray-300">
+                        <summary class="cursor-pointer hover:text-white">Показать решение</summary>
+                        <div class="mt-1 bg-gray-900/50 p-2 rounded">${currentEgeTask.solution}</div>
+                    </details>
+                </div>
+            </div>
+        `;
+        resultDiv.className = 'result-container bg-green-900/10 neon-border';
+    } else {
+        resultDiv.innerHTML = `
+            <div class="flex items-start text-sm">
+                <div class="mr-2 mt-1">❌</div>
+                <div>
+                    <p class="font-bold text-red-400">Неправильно</p>
+                    <p class="mt-1">Правильный ответ: <span class="font-mono">${currentEgeTask.correct}</span></p>
+                    <details class="mt-1 text-gray-300" open>
+                        <summary class="cursor-pointer hover:text-white">Решение</summary>
+                        <div class="mt-1 bg-gray-900/50 p-2 rounded">${currentEgeTask.solution}</div>
+                    </details>
+                </div>
+            </div>
+        `;
+        resultDiv.className = 'result-container bg-red-900/10 neon-border';
+    }
+    
+    resultDiv.classList.remove('hidden');
+    answerInput.disabled = true;
+
+    // Обновление счетчиков
+    document.getElementById('ege-score').textContent = egeTotalScore;
+    document.getElementById('ege-tasks').textContent = `${egeTasksCompleted}/10`;
+    
+    // Проверка завершения 10 задач
+    if (egeTasksCompleted >= 10) {
+        const maxPossible = currentLevel === 'basic' ? 10 : 20;
+        resultDiv.innerHTML += `<br><br><strong>Тест завершен!</strong> Вы набрали ${egeTotalScore} баллов из ${maxPossible} возможных.`;
+        document.getElementById('ege-answer').disabled = true;
+        document.getElementById('ege-new-task-btn').disabled = true;
+    }
+    
+    updateProgress();
 }
