@@ -16,8 +16,8 @@ let egeTasksCompleted = 0;
 let egeTotalScore = 0;
 
 // Инициализация Supabase клиента
-const supabaseUrl = 'https://your-project.supabase.co';
-const supabaseKey = 'your-anon-key';
+const supabaseUrl = 'https://supabase.com/dashboard/project/tekxmqrbpdzmbcjszksg';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRla3htcXJicGR6bWJjanN6a3NnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDczMzE4NTAsImV4cCI6MjA2MjkwNzg1MH0.YLJrqLBam99cYu0_ZTi-I57kYw7aCrilHyriTwLVYZ4';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Инициализация при загрузке страницы
