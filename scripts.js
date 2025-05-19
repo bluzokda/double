@@ -15,12 +15,105 @@ let currentLevel = 'basic'; // 'basic' или 'advanced'
 let egeTasksCompleted = 0;
 let egeTotalScore = 0;
 
+// Инициализация Supabase клиента
+const supabaseUrl = 'https://your-project.supabase.co';
+const supabaseKey = 'your-anon-key';
+const supabase = createClient(supabaseUrl, supabaseKey);
+
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
     createBubbles();
     generateDepositTask();
     setEgeLevel('basic');
+    checkAuthState();
 });
+
+// ================== ФУНКЦИИ SUPABASE ==================
+
+// Проверка состояния аутентификации
+async function checkAuthState() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+        console.log('Пользователь авторизован:', user.email);
+        loadUserProgress(user.id);
+    }
+}
+
+// Сохранение ответа в Supabase
+async function saveResponseToSupabase(taskType, userAnswer, isCorrect, correctAnswer, questionText) {
+    const userId = await getUserId();
+    
+    const { data, error } = await supabase
+        .from('user_responses')
+        .insert([
+            {
+                user_id: userId,
+                block: taskType,
+                user_answer: userAnswer.toString(),
+                is_correct: isCorrect,
+                correct_answer: correctAnswer.toString(),
+                question_text: questionText,
+                response_time: new Date().toISOString(),
+                level: currentLevel
+            }
+        ])
+        .select();
+    
+    if (error) {
+        console.error('Ошибка сохранения в Supabase:', error);
+        return false;
+    }
+    
+    console.log('Ответ сохранен в Supabase:', data);
+    return true;
+}
+
+// Получение ID пользователя
+async function getUserId() {
+    const { data: { user } } = await supabase.auth.getUser();
+    return user ? user.id : null;
+}
+
+// Загрузка прогресса пользователя
+async function loadUserProgress(userId) {
+    const { data, error } = await supabase
+        .from('user_progress')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+    
+    if (error || !data) return;
+    
+    // Обновляем прогресс на странице
+    document.getElementById('progress-bar').style.width = `${data.progress}%`;
+    document.getElementById('total-score').textContent = `${data.progress}%`;
+    
+    // Можно добавить загрузку других данных, если нужно
+}
+
+// Сохранение прогресса пользователя
+async function saveUserProgress(progress, correctAnswers, totalAnswers) {
+    const userId = await getUserId();
+    if (!userId) return;
+    
+    const { data, error } = await supabase
+        .from('user_progress')
+        .upsert([
+            {
+                user_id: userId,
+                progress: progress,
+                correct_answers: correctAnswers,
+                total_answers: totalAnswers,
+                last_updated: new Date().toISOString()
+            }
+        ], { onConflict: 'user_id' });
+    
+    if (error) {
+        console.error('Ошибка сохранения прогресса:', error);
+    }
+}
+
+// ================== ОСНОВНЫЕ ФУНКЦИИ ==================
 
 // Создание анимированного фона
 function createBubbles() {
@@ -144,24 +237,13 @@ function updateProgress() {
     const progress = totalTasks > 0 ? Math.round((totalCorrect / totalTasks) * 100) : 0;
     document.getElementById('progress-bar').style.width = `${progress}%`;
     document.getElementById('total-score').textContent = `${progress}%`;
-}
-
-// Вспомогательные функции
-function formatNumber(num) {
-    return new Intl.NumberFormat('ru-RU').format(Math.round(num));
-}
-
-function getYearWord(years) {
-    const lastDigit = years % 10;
-    const lastTwoDigits = years % 100;
     
-    if (lastTwoDigits >= 11 && lastTwoDigits <= 19) return 'лет';
-    if (lastDigit === 1) return 'год';
-    if (lastDigit >= 2 && lastDigit <= 4) return 'года';
-    return 'лет';
+    // Сохраняем прогресс пользователя
+    saveUserProgress(progress, totalCorrect, totalTasks);
 }
 
-// ========== Функции для работы с вкладами ==========
+// ================== ФУНКЦИИ ДЛЯ РАБОТЫ С ВКЛАДАМИ ==================
+
 function generateDepositTask() {
     let principal, rate, years, isCompound;
     
@@ -171,13 +253,11 @@ function generateDepositTask() {
         years = Math.floor(Math.random() * 5) + 1;
         isCompound = Math.random() > 0.5;
     } else {
-        // Более сложные задачи для повышенного уровня
         principal = Math.floor(Math.random() * 900000) + 100000;
         rate = Math.floor(Math.random() * 15) + 5;
         years = Math.floor(Math.random() * 10) + 1;
-        isCompound = true; // В повышенном уровне всегда сложные проценты
+        isCompound = true;
         
-        // 30% вероятности добавить ежемесячную капитализацию
         if (Math.random() < 0.3) {
             const monthlyRate = rate / 12;
             const months = years * 12;
@@ -261,10 +341,20 @@ function checkDepositAnswer() {
     const totalSpan = document.getElementById('deposit-total');
     totalSpan.textContent = parseInt(totalSpan.textContent) + 1;
     
+    // Сохраняем ответ в Supabase
+    saveResponseToSupabase(
+        'deposit',
+        userAnswer,
+        isCorrect,
+        currentDepositTask.correct,
+        currentDepositTask.question
+    );
+    
     updateProgress();
 }
 
-// ========== Функции для работы с аннуитетными кредитами ==========
+// ================== ФУНКЦИИ ДЛЯ АННУИТЕТНЫХ КРЕДИТОВ ==================
+
 function generateAnnuityTask() {
     let principal, rate, years;
     
@@ -273,12 +363,10 @@ function generateAnnuityTask() {
         rate = Math.floor(Math.random() * 11) + 10;
         years = Math.floor(Math.random() * 5) + 1;
     } else {
-        // Более сложные задачи для повышенного уровня
         principal = Math.floor(Math.random() * 5000000) + 1000000;
         rate = Math.floor(Math.random() * 15) + 10;
         years = Math.floor(Math.random() * 10) + 1;
         
-        // 30% вероятности добавить комиссию
         if (Math.random() < 0.3) {
             const commission = Math.floor(Math.random() * 5) + 1;
             const months = years * 12;
@@ -361,10 +449,20 @@ function checkAnnuityAnswer() {
     const totalSpan = document.getElementById('annuity-total');
     totalSpan.textContent = parseInt(totalSpan.textContent) + 1;
     
+    // Сохраняем ответ в Supabase
+    saveResponseToSupabase(
+        'annuity',
+        userAnswer,
+        isCorrect,
+        currentAnnuityTask.correct,
+        currentAnnuityTask.question
+    );
+    
     updateProgress();
 }
 
-// ========== Функции для работы с дифференцированными кредитами ==========
+// ================== ФУНКЦИИ ДЛЯ ДИФФЕРЕНЦИРОВАННЫХ КРЕДИТОВ ==================
+
 function generateDiffTask() {
     let principal, rate, years;
     
@@ -373,12 +471,10 @@ function generateDiffTask() {
         rate = Math.floor(Math.random() * 11) + 10;
         years = Math.floor(Math.random() * 5) + 1;
     } else {
-        // Более сложные задачи для повышенного уровня
         principal = Math.floor(Math.random() * 5000000) + 1000000;
         rate = Math.floor(Math.random() * 15) + 10;
         years = Math.floor(Math.random() * 10) + 1;
         
-        // 30% вероятности добавить комиссию
         if (Math.random() < 0.3) {
             const commission = Math.floor(Math.random() * 5) + 1;
             const months = years * 12;
@@ -465,10 +561,20 @@ function checkDiffAnswer() {
     const totalSpan = document.getElementById('diff-total');
     totalSpan.textContent = parseInt(totalSpan.textContent) + 1;
     
+    // Сохраняем ответ в Supabase
+    saveResponseToSupabase(
+        'diff',
+        `${userAnswer1} ${userAnswer2}`,
+        isCorrect,
+        `${currentDiffTask.firstPayment} ${currentDiffTask.lastPayment}`,
+        currentDiffTask.question
+    );
+    
     updateProgress();
 }
 
-// ========== Функции для работы с инвестициями ==========
+// ================== ФУНКЦИИ ДЛЯ ИНВЕСТИЦИЙ ==================
+
 function generateInvestTask() {
     let target, rate, years;
     
@@ -482,12 +588,10 @@ function generateInvestTask() {
             question: `Какую сумму вам нужно инвестировать сегодня под ${rate}% годовых, чтобы через ${years} ${getYearWord(years)} получить ${formatNumber(target)} руб.?`
         };
     } else {
-        // Более сложные задачи для повышенного уровня
         target = Math.floor(Math.random() * 90000000) + 10000000;
         rate = Math.floor(Math.random() * 15) + 5;
         years = Math.floor(Math.random() * 30) + 10;
         
-        // 30% вероятности добавить ежемесячное пополнение
         if (Math.random() < 0.3) {
             const monthlyPayment = Math.floor(Math.random() * 50000) + 10000;
             const monthlyRate = rate / 12 / 100;
@@ -566,12 +670,21 @@ function checkInvestAnswer() {
     const totalSpan = document.getElementById('invest-total');
     totalSpan.textContent = parseInt(totalSpan.textContent) + 1;
     
+    // Сохраняем ответ в Supabase
+    saveResponseToSupabase(
+        'invest',
+        userAnswer,
+        isCorrect,
+        currentInvestTask.correct,
+        currentInvestTask.question
+    );
+    
     updateProgress();
 }
 
-// ========== Функции для работы с задачами ЕГЭ ==========
+// ================== ФУНКЦИИ ДЛЯ ЗАДАЧ ЕГЭ ==================
+
 function generateEgeTask() {
-    // Проверка завершения 10 задач
     if (egeTasksCompleted >= 10) {
         document.getElementById('ege-question').textContent = "Вы уже решили 10 задач. Максимальное количество задач достигнуто.";
         document.getElementById('ege-answer').disabled = true;
@@ -579,7 +692,6 @@ function generateEgeTask() {
         return;
     }
     
-    // Генерация задач для ЕГЭ в зависимости от уровня сложности
     if (currentLevel === 'basic') {
         generateBasicEgeTask();
     } else {
@@ -588,18 +700,16 @@ function generateEgeTask() {
 }
 
 function generateBasicEgeTask() {
-    // Генерация базовых задач (№15)
     const taskTypes = ['deposit', 'credit', 'discount'];
     const type = taskTypes[Math.floor(Math.random() * taskTypes.length)];
     
     let question, correct, solution;
-    const amount = Math.round((10000 + Math.random() * 90000) / 1000) * 1000; // Сумма от 10к до 100к, кратная 1000
-    const years = 1 + Math.floor(Math.random() * 5); // От 1 до 5 лет
-    const rate = 5 + Math.floor(Math.random() * 16); // Ставка от 5% до 20%
+    const amount = Math.round((10000 + Math.random() * 90000) / 1000) * 1000;
+    const years = 1 + Math.floor(Math.random() * 5);
+    const rate = 5 + Math.floor(Math.random() * 16);
     
     switch(type) {
         case 'deposit':
-            // Вклад с капитализацией
             const capitalization = ['ежегодно', 'ежеквартально', 'ежемесячно'][Math.floor(Math.random() * 3)];
             let periodsPerYear, totalPeriods;
             
@@ -623,7 +733,6 @@ function generateBasicEgeTask() {
             break;
             
         case 'credit':
-            // Аннуитетный кредит
             const months = years * 12;
             const monthlyRate = rate / 12 / 100;
             const annuityPayment = Math.round(amount * monthlyRate * Math.pow(1 + monthlyRate, months) / (Math.pow(1 + monthlyRate, months) - 1));
@@ -634,9 +743,8 @@ function generateBasicEgeTask() {
             break;
             
         case 'discount':
-            // Дисконтирование
             const futureAmount = Math.round((amount * (1 + 0.1 * Math.random())) / 1000) * 1000;
-            const discountRate = 5 + Math.floor(Math.random() * 11); // От 5% до 15%
+            const discountRate = 5 + Math.floor(Math.random() * 11);
             const presentValue = Math.round(futureAmount / Math.pow(1 + discountRate/100, years));
             
             question = `Какую сумму нужно положить в банк под ${discountRate}% годовых с ежегодной капитализацией, чтобы через ${years} ${years === 1 ? 'год' : years < 5 ? 'года' : 'лет'} получить ${futureAmount.toLocaleString('ru-RU')} рублей?`;
@@ -660,18 +768,16 @@ function generateBasicEgeTask() {
 }
 
 function generateAdvancedEgeTask() {
-    // Генерация сложных задач (№17)
     const taskTypes = ['two-payments', 'equal-reduction', 'varying-payments', 'deposit-additions'];
     const type = taskTypes[Math.floor(Math.random() * taskTypes.length)];
     
     let question, correct, solution;
-    const amount = Math.round((1000000 + Math.random() * 9000000) / 100000) * 100000; // От 1 млн до 10 млн
-    const years = 2 + Math.floor(Math.random() * 4); // От 2 до 5 лет
-    const rate = 10 + Math.floor(Math.random() * 21); // Ставка от 10% до 30%
+    const amount = Math.round((1000000 + Math.random() * 9000000) / 100000) * 100000;
+    const years = 2 + Math.floor(Math.random() * 4);
+    const rate = 10 + Math.floor(Math.random() * 21);
     
     switch(type) {
         case 'two-payments':
-            // Кредит с двумя равными платежами
             const totalAmount = amount * Math.pow(1 + rate/100, 2);
             const payment = Math.round(totalAmount / (1 + (1 + rate/100)));
             
@@ -681,10 +787,9 @@ function generateAdvancedEgeTask() {
             break;
             
         case 'equal-reduction':
-            // Кредит с равномерным уменьшением долга
             const months = years * 12;
-            const totalPayment = Math.round(amount * (1 + 0.3 + 0.1 * Math.random())); // Общая выплата на 30-40% больше
-            const r = Math.round((totalPayment/amount - 1) * 10 * 100) / 100; // Расчетная ставка
+            const totalPayment = Math.round(amount * (1 + 0.3 + 0.1 * Math.random()));
+            const r = Math.round((totalPayment/amount - 1) * 10 * 100) / 100;
             
             question = `15 января планируется взять кредит в банке на ${months} месяцев. Условия его возврата таковы: 1-го числа каждого месяца долг возрастает на r% по сравнению с концом предыдущего месяца; со 2-го по 14-е число каждого месяца необходимо выплатить часть долга; 15-го числа каждого месяца долг должен быть на одну и ту же сумму меньше долга на 15-е число предыдущего месяца. Известно, что общая сумма выплат после полного погашения кредита на ${Math.round((totalPayment/amount - 1)*100)}% больше суммы, взятой в кредит. Найдите r.`;
             correct = r.toString();
@@ -692,7 +797,6 @@ function generateAdvancedEgeTask() {
             break;
             
         case 'varying-payments':
-            // Кредит с разными платежами по годам
             const annualPayment = Math.round(amount / years);
             const totalInterest = annualPayment * rate/100 * (years + 1) / 2;
             const totalPaymentVar = amount + totalInterest;
@@ -703,8 +807,7 @@ function generateAdvancedEgeTask() {
             break;
             
         case 'deposit-additions':
-            // Вклад с ежегодными пополнениями
-            const additions = Math.round((100000 + Math.random() * 400000) / 10000) * 10000; // Пополнения от 100к до 500к
+            const additions = Math.round((100000 + Math.random() * 400000) / 10000) * 10000;
             const finalAmount = Math.round(amount * Math.pow(1 + rate/100, 5) + additions * (Math.pow(1 + rate/100, 4) + Math.pow(1 + rate/100, 3) + Math.pow(1 + rate/100, 2) + (1 + rate/100)));
             
             question = `В банк помещена сумма ${(amount/1000000).toLocaleString('ru-RU')} млн рублей под ${rate}% годовых. В конце каждого из первых четырех лет хранения после начисления процентов вкладчик дополнительно вносил на счет ${additions.toLocaleString('ru-RU')} рублей. Какая сумма будет на счету к концу пятого года?`;
@@ -799,6 +902,15 @@ function checkEgeAnswer() {
     document.getElementById('ege-score').textContent = egeTotalScore;
     document.getElementById('ege-tasks').textContent = `${egeTasksCompleted}/10`;
     
+    // Сохраняем ответ в Supabase
+    saveResponseToSupabase(
+        'ege',
+        userInput,
+        isCorrect,
+        currentEgeTask.correct,
+        currentEgeTask.question
+    );
+    
     // Проверка завершения 10 задач
     if (egeTasksCompleted >= 10) {
         const maxPossible = currentLevel === 'basic' ? 10 : 20;
@@ -808,4 +920,20 @@ function checkEgeAnswer() {
     }
     
     updateProgress();
+}
+
+// ================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==================
+
+function formatNumber(num) {
+    return new Intl.NumberFormat('ru-RU').format(Math.round(num));
+}
+
+function getYearWord(years) {
+    const lastDigit = years % 10;
+    const lastTwoDigits = years % 100;
+    
+    if (lastTwoDigits >= 11 && lastTwoDigits <= 19) return 'лет';
+    if (lastDigit === 1) return 'год';
+    if (lastDigit >= 2 && lastDigit <= 4) return 'года';
+    return 'лет';
 }
