@@ -41,13 +41,14 @@ async function checkAuthState() {
 
 // Сохранение ответа в Supabase
 async function saveResponseToSupabase(taskType, userAnswer, isCorrect, correctAnswer, questionText) {
-    const userId = await getUserId();
-    
-    const { data, error } = await supabase
-        .from('user_responses')
-        .insert([
-            {
-                user_id: userId,
+    try {
+        const userId = await getUserId();
+        if (!userId && !allowAnonymous) return false; // Если анонимы не разрешены
+
+        const { data, error } = await supabase
+            .from('user_responses')
+            .insert([{
+                user_id: userId || null,
                 block: taskType,
                 user_answer: userAnswer.toString(),
                 is_correct: isCorrect,
@@ -55,23 +56,25 @@ async function saveResponseToSupabase(taskType, userAnswer, isCorrect, correctAn
                 question_text: questionText,
                 response_time: new Date().toISOString(),
                 level: currentLevel
-            }
-        ])
-        .select();
-    
-    if (error) {
-        console.error('Ошибка сохранения в Supabase:', error);
+            }]);
+
+        if (error) throw error;
+        return true;
+    } catch (error) {
+        console.error('Supabase Error:', error);
         return false;
     }
-    
-    console.log('Ответ сохранен в Supabase:', data);
-    return true;
 }
 
 // Получение ID пользователя
 async function getUserId() {
-    const { data: { user } } = await supabase.auth.getUser();
-    return user ? user.id : null;
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        return user?.id || null;
+    } catch (error) {
+        console.error('Auth Error:', error);
+        return null;
+    }
 }
 
 // Загрузка прогресса пользователя
