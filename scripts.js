@@ -15,6 +15,105 @@ let currentLevel = 'basic'; // 'basic' или 'advanced'
 let egeTasksCompleted = 0;
 let egeTotalScore = 0;
 
+// Проверяем авторизацию
+const authData = JSON.parse(localStorage.getItem('auth'));
+if (!authData?.isAuthenticated) {
+    window.location.href = 'login.html';
+}
+
+// Если пользователь - учитель, добавляем функционал
+if (authData?.role === 'teacher') {
+    document.addEventListener('DOMContentLoaded', function() {
+        addTeacherFeatures();
+    });
+}
+
+function addTeacherFeatures() {
+    // Добавляем кнопку просмотра ответов учеников
+    const tabsContainer = document.querySelector('.flex.flex-wrap.gap-3.mb-8');
+    if (tabsContainer) {
+        const teacherTab = document.createElement('button');
+        teacherTab.className = 'tab-btn tab-inactive px-5 py-3 rounded-full font-medium flex items-center';
+        teacherTab.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            Ответы учеников
+        `;
+        teacherTab.onclick = function() {
+            openTeacherView();
+        };
+        tabsContainer.appendChild(teacherTab);
+    }
+}
+
+async function openTeacherView() {
+    // Загружаем ответы учеников из Supabase
+    try {
+        const { data, error } = await supabase
+            .from('user_responses')
+            .select('*')
+            .order('response_time', { ascending: false });
+        
+        if (error) throw error;
+        
+        // Создаем модальное окно с результатами
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4';
+        modal.innerHTML = `
+            <div class="neon-card neon-border rounded-2xl overflow-hidden w-full max-w-4xl max-h-[80vh] flex flex-col">
+                <div class="p-6 border-b border-white/10">
+                    <h2 class="text-2xl font-bold">Ответы учеников</h2>
+                </div>
+                <div class="overflow-y-auto p-6">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="text-left border-b border-white/10">
+                                <th class="pb-2">Email</th>
+                                <th class="pb-2">Тип задачи</th>
+                                <th class="pb-2">Вопрос</th>
+                                <th class="pb-2">Ответ</th>
+                                <th class="pb-2">Правильно</th>
+                                <th class="pb-2">Дата</th>
+                            </tr>
+                        </thead>
+                        <tbody id="responsesTableBody">
+                            <!-- Данные будут добавлены здесь -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="p-4 border-t border-white/10 flex justify-end">
+                    <button onclick="this.closest('div[class^=\"fixed\"]').remove()" 
+                        class="btn-neon px-4 py-2 rounded-lg">
+                        Закрыть
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        const tableBody = document.getElementById('responsesTableBody');
+        data.forEach(response => {
+            const row = document.createElement('tr');
+            row.className = 'border-b border-white/10';
+            row.innerHTML = `
+                <td class="py-3">${response.user_id || 'Гость'}</td>
+                <td class="py-3">${response.block}</td>
+                <td class="py-3 max-w-xs truncate">${response.question_text}</td>
+                <td class="py-3">${response.user_answer}</td>
+                <td class="py-3">${response.is_correct ? '✅' : '❌'}</td>
+                <td class="py-3">${new Date(response.response_time).toLocaleString()}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+        
+    } catch (error) {
+        console.error('Ошибка загрузки ответов:', error);
+        alert('Не удалось загрузить ответы учеников');
+    }
+}
+
 // Инициализация Supabase клиента
 const supabaseUrl = 'https://tekxmqrbpdzmbcjszksg.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRla3htcXJicGR6bWJjanN6a3NnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDczMzE4NTAsImV4cCI6MjA2MjkwNzg1MH0.YLJrqLBam99cYu0_ZTi-I57kYw7aCrilHyriTwLVYZ4';
