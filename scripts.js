@@ -42,26 +42,46 @@ async function checkAuthState() {
 // Сохранение ответа в Supabase
 async function saveResponseToSupabase(taskType, userAnswer, isCorrect, correctAnswer, questionText) {
     try {
-        const userId = await getUserId();
-        if (!userId && !allowAnonymous) return false; // Если анонимы не разрешены
+        // Получаем текущего пользователя
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError) {
+            console.error('Ошибка получения пользователя:', userError);
+            return false;
+        }
 
+        // Подготавливаем данные для вставки
+        const responseData = {
+            block: taskType,
+            user_answer: userAnswer.toString(),
+            is_correct: isCorrect,
+            correct_answer: correctAnswer.toString(),
+            question_text: questionText,
+            level: currentLevel,
+            response_time: new Date().toISOString()
+        };
+
+        // Добавляем user_id только если пользователь авторизован
+        if (user) {
+            responseData.user_id = user.id;
+        }
+
+        console.log('Отправка данных в Supabase:', responseData); // Для отладки
+
+        // Вставляем данные
         const { data, error } = await supabase
             .from('user_responses')
-            .insert([{
-                user_id: userId || null,
-                block: taskType,
-                user_answer: userAnswer.toString(),
-                is_correct: isCorrect,
-                correct_answer: correctAnswer.toString(),
-                question_text: questionText,
-                response_time: new Date().toISOString(),
-                level: currentLevel
-            }]);
+            .insert([responseData]);
 
-        if (error) throw error;
+        if (error) {
+            console.error('Ошибка сохранения ответа:', error);
+            return false;
+        }
+
+        console.log('Ответ успешно сохранён:', data);
         return true;
     } catch (error) {
-        console.error('Supabase Error:', error);
+        console.error('Неожиданная ошибка:', error);
         return false;
     }
 }
