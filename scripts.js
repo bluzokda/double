@@ -1059,3 +1059,19 @@ function getYearWord(years) {
     if (lastDigit >= 2 && lastDigit <= 4) return 'года';
     return 'лет';
 }
+<script>
+  function openAuth() {
+    alert('Переход к авторизации');
+    // Здесь можно открыть модальное окно или перейти на страницу входа
+  }
+
+  function openStats() {
+    alert('Просмотр статистики');
+    // Здесь можно показать данные пользователя из Supabase
+  }
+
+  function openTop() {
+    alert('Таблица лидеров');
+    // Здесь можно загрузить и отобразить топ пользователей
+  }
+</script>
