@@ -378,5 +378,31 @@ document.getElementById('registerForm').addEventListener('submit', async functio
   }
 });
 </script>
+<!-- Вкладки "Вход / Регистрация" -->
+<div class="flex gap-2 mb-6">
+  <button onclick="switchTab('login')" id="login-tab" class="tab-btn tab-active flex-1 text-center py-3">Войти</button>
+  <button onclick="switchTab('register')" id="register-tab" class="tab-btn tab-inactive flex-1 text-center py-3">Регистрация</button>
+</div>
+
+<!-- Форма входа -->
+<form id="loginForm" class="space-y-4">
+  <!-- поля формы -->
+</form>
+
+<!-- Форма регистрации -->
+<form id="registerForm" class="hidden space-y-4">
+  <!-- поля формы -->
+</form>
+
+<!-- Сообщение об ошибке -->
+<div id="register-error" class="error-message hidden">...</div>
+
+<!-- Скрипт регистрации -->
+<script>
+  document.getElementById('registerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    // твой JS-код для регистрации
+  });
+</script>
 </body>
 </html>
