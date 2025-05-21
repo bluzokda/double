@@ -300,6 +300,20 @@ body {
 .fixed.bottom-0.left-0.right-0 {
   height: 60px; /* Можно изменить на любую высоту */
 }
+
 main {
   padding-bottom: 60px; /* Высота хотбара + небольшой буфер */
+}
+
+main {
+  position: relative;
+  z-index: 2;
+}
+
+.hotbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
 }
