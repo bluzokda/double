@@ -1218,3 +1218,52 @@ async function saveResponseToSupabase(taskType, userAnswer, isCorrect, correctAn
     console.error('Ошибка сохранения в Supabase:', err.message);
   }
 }
+
+async function showLeaderboard() {
+  const { data, error } = await supabase
+    .from('user_progress')
+    .select('user_id, progress, created_at')
+    .order('progress', { ascending: false })
+    .limit(10);
+
+  if (error) {
+    console.error('Ошибка загрузки таблицы лидеров:', error.message);
+    alert('Не удалось загрузить таблицу лидеров');
+    return;
+  }
+
+  const modal = document.createElement('div');
+  modal.className = 'fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4';
+  modal.innerHTML = `
+    <div class="neon-card neon-border rounded-2xl overflow-hidden w-full max-w-4xl">
+      <div class="p-6 border-b border-white/10">
+        <h2 class="text-2xl font-bold">🏆 Таблица лидеров</h2>
+        <button onclick="this.closest('div').remove()" class="absolute top-4 right-4 text-white/70 hover:text-white">
+          ✕
+        </button>
+      </div>
+      <div class="p-6">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="border-b border-white/20">
+              <th class="py-3 pr-6">ID</th>
+              <th class="py-3 pr-6">Прогресс (%)</th>
+              <th class="py-3">Дата обновления</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.map(item => `
+              <tr class="border-b border-white/10">
+                <td class="py-3 pr-6">${item.user_id}</td>
+                <td class="py-3 pr-6">${item.progress}%</td>
+                <td class="py-3">${new Date(item.last_updated).toLocaleDateString()}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+}
