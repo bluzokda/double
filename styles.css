@@ -296,3 +296,7 @@ body {
 .result-container katex {
     font-size: 1.1em;
 }
+/* Уменьшение высоты хотбара */
+.fixed.bottom-0.left-0.right-0 {
+  height: 60px; /* Можно изменить на любую высоту */
+}
