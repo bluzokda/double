@@ -1168,23 +1168,23 @@ async function saveResponseToSupabase(taskType, userAnswer, isCorrect, correctAn
     console.error('Неожиданная ошибка:', err.message);
   }
 }
-// сохранение прогресса обучения
-async function updateProgress() {
-  scorePercent = Math.round((score / totalTasks) * 100);
+// сохранение прогресса
+async function updateProgress(correctAnswers, totalTasks) {
+  const progressPercent = Math.round((correctAnswers / totalTasks) * 100);
 
-  document.getElementById('progress-bar').style.width = `${scorePercent}%`;
-  document.getElementById('total-score').textContent = `${scorePercent}%`;
+  document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+  document.getElementById('total-score').textContent = `${progressPercent}%`;
 
-  // Сохраняем прогресс в Supabase
+  // Сохраняем в Supabase
   const { error } = await supabase.from('user_progress').upsert({
     user_id: authData.userId,
-    progress: scorePercent,
-    correct_answers: score,
+    progress: progressPercent,
+    correct_answers: correctAnswers,
     total_answers: totalTasks,
     last_updated: new Date().toISOString()
   });
 
-  if (error) console.error('Ошибка сохранения прогресса:', error.message);
+  if (error) console.error('Не удалось обновить прогресс:', error.message);
 }
 
 const form = document.getElementById('depositForm');
