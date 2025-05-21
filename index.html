@@ -1669,6 +1669,18 @@
     }
   });
 </script>
+<script>
+  document.addEventListener('DOMContentLoaded', async function () {
+    const { data: { session }, error } = await supabase.auth.getSession();
+
+    if (error || !session) {
+      window.location.href = 'login.html';
+    } else {
+      console.log('Пользователь авторизован:', session.user.email);
+      loadUserProgress(session.user.id);
+    }
+  });
+</script>
 <script src="scripts.js"></script>
 </body>
 </html>
