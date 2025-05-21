@@ -120,11 +120,16 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Инициализация при загрузке страницы
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (!session) {
+    window.location.href = 'login.html';
+  } else {
     createBubbles();
     generateDepositTask();
     setEgeLevel('basic');
-    checkAuthState();
+  }
 });
 
 // ================== ФУНКЦИИ SUPABASE ==================
