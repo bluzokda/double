@@ -1,7 +1,6 @@
 // Проверка реальной сессии через Supabase
 document.addEventListener('DOMContentLoaded', async function () {
   const { data: { session }, error } = await supabase.auth.getSession();
-
   if (error || !session) {
     window.location.href = 'login.html';
   } else {
@@ -33,8 +32,7 @@ let egeTotalScore = 0;
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     const { data: { session }, error } = await supabase.auth.getSession();
-    
-    if (error || !session) {
+       if (error || !session) {
       window.location.href = 'login.html';
     } else {
       const userId = session.user.id;
