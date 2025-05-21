@@ -1615,6 +1615,42 @@
 
   document.addEventListener('DOMContentLoaded', checkAuthAndRedirect);
 </script>
+<script>
+  document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const role = document.getElementById('role').value;
+
+    const errorDiv = document.getElementById('error-message');
+    errorDiv.classList.add('hidden');
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+
+      if (error) throw error;
+
+      // Сохраняем роль и статус авторизации в localStorage
+      localStorage.setItem('auth', JSON.stringify({
+        isAuthenticated: true,
+        email: data.user.email,
+        role: role,
+        userId: data.user.id
+      }));
+
+      // Перенаправление
+      window.location.href = 'index.html';
+    } catch (err) {
+      console.error('Ошибка авторизации:', err.message);
+      errorDiv.textContent = 'Неверный email или пароль';
+      errorDiv.classList.remove('hidden');
+    }
+  });
+</script>
 <script src="scripts.js"></script>
 </body>
 </html>
