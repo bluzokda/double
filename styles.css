@@ -302,19 +302,7 @@ body {
 }
 
 main {
-  padding-bottom: 60px; /* Отступ для хотбара */
   position: relative;
-  z-index: 2;
-}
-
-.hotbar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
-  z-index: 10;
+  z-index: 20; /* Более высокий, чем хотбар (z-index: 10) */
+  padding-bottom: 72px; /* Высота хотбара + небольшой буфер */
 }
