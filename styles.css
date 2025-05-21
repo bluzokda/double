@@ -307,7 +307,7 @@ main {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 72px;
+  height: 72px; /* Фиксированная высота хотбара */
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(10px);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -317,4 +317,22 @@ main {
   justify-content: space-around;
   align-items: center;
   box-sizing: border-box;
+}
+
+/* Для кнопок хотбара */
+.hotbar button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  color: var(--neon-blue);
+  font-weight: 500;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.hotbar button:hover {
+  color: white;
 }
