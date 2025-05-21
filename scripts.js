@@ -178,16 +178,34 @@ async function checkAuthState() {
     }
 }
 
-// Сохранение ответа в Supabase
 async function saveResponseToSupabase(taskType, userAnswer, isCorrect, correctAnswer, questionText) {
-    try {
-        // Получаем текущего пользователя
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        
-        if (userError) {
-            console.error('Ошибка получения пользователя:', userError);
-            return false;
-        }
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      console.warn('Пользователь не авторизован');
+      return;
+    }
+
+    const userId = user.id;
+
+    const { error } = await supabase.from('user_responses').insert([{
+      block: taskType,
+      user_answer: userAnswer.toString(),
+      is_correct: isCorrect,
+      correct_answer: correctAnswer.toString(),
+      question_text: questionText,
+      level: currentLevel,
+      response_time: new Date().toISOString(),
+      user_id: userId // <-- Сохраняем ID пользователя
+    }]);
+
+    if (error) throw error;
+
+    console.log('Ответ успешно сохранён с user_id:', userId);
+  } catch (err) {
+    console.error('Ошибка сохранения в Supabase:', err.message);
+  }
+}
 
         // Подготавливаем данные для вставки
         const responseData = {
