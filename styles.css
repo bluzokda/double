@@ -296,13 +296,25 @@ body {
 .result-container katex {
     font-size: 1.1em;
 }
-/* Уменьшение высоты хотбара */
-.fixed.bottom-0.left-0.right-0 {
-  height: 60px; /* Можно изменить на любую высоту */
-}
-
 main {
   position: relative;
-  z-index: 20; /* Более высокий, чем хотбар (z-index: 10) */
-  padding-bottom: 72px; /* Высота хотбара + небольшой буфер */
+  z-index: 20; /* выше, чем у хотбара */
+  padding-bottom: 72px; /* место для хотбара */
+}
+
+.hotbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 72px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  box-sizing: border-box;
 }
