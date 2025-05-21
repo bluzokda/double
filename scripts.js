@@ -225,15 +225,18 @@ async function getUserId() {
     }
 }
 
-// Загрузка прогресса пользователя
 async function loadUserProgress(userId) {
-    const { data, error } = await supabase
-        .from('user_progress')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-    
-    if (error || !data) return;
+  const { data, error } = await supabase
+    .from('user_progress')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
+
+  if (error || !data) return;
+
+  document.getElementById('progress-bar').style.width = `${data.progress}%`;
+  document.getElementById('total-score').textContent = `${data.progress}%`;
+}
     
     // Обновляем прогресс на странице
     document.getElementById('progress-bar').style.width = `${data.progress}%`;
@@ -1104,3 +1107,37 @@ function getYearWord(years) {
     // Здесь можно загрузить и отобразить топ пользователей
   }
 </script>
+// Функция для сохранения ответа в Supabase
+async function saveResponseToSupabase(taskType, userAnswer, isCorrect, correctAnswer, questionText) {
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      console.warn('Пользователь не авторизован. Ответ не сохранён.');
+      return;
+    }
+
+    const userId = user.id;
+
+    // Сохраняем ответ в Supabase
+    const { data, error } = await supabase
+      .from('user_responses')
+      .insert([{
+        user_id: userId,
+        block: taskType,
+        question_text: questionText,
+        user_answer: userAnswer.toString(),
+        correct_answer: correctAnswer.toString(),
+        is_correct: isCorrect,
+        response_time: new Date().toISOString()
+      }]);
+
+    if (error) {
+      console.error('Ошибка при сохранении ответа:', error.message);
+    } else {
+      console.log('Ответ успешно сохранён');
+    }
+  } catch (err) {
+    console.error('Неожиданная ошибка:', err.message);
+  }
+}
