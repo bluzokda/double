@@ -1159,3 +1159,8 @@ async function updateProgress() {
 
   if (error) console.error('Ошибка сохранения прогресса:', error.message);
 }
+
+const form = document.getElementById('depositForm');
+if (form) {
+  form.addEventListener('submit', checkDepositAnswer);
+}
