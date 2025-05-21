@@ -1,226 +1,178 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <title>Авторизация - Финансовый тренажёр</title>
-  <script src="https://cdn.tailwindcss.com "></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter :wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --neon-blue: #00f2ff;
-      --neon-purple: #b400ff;
-      --dark-bg: #0a0a1a;
-    }
+import React, { useState, useEffect } from 'react';
 
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: var(--dark-bg);
-      color: white;
-      min-height: 100vh;
-    }
+const App = () => {
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState('student');
+  const [error, setError] = useState('');
 
-    .neon-card {
-      background: rgba(10, 10, 26, 0.7);
-      backdrop-filter: blur(12px);
-      border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
-    }
+  // Проверка авторизации при загрузке
+  useEffect(() => {
+    const checkAuth = async () => {
+      const response = await fetch('http://localhost:8000/check-auth', {
+        method: 'GET',
+        credentials: 'include'
+      });
+      const data = await response.json();
+      if (data.authenticated) {
+        window.location.href = '/index';
+      }
+    };
+    checkAuth();
+  }, []);
 
-    .input-neon {
-      background: rgba(10, 10, 26, 0.7);
-      border: 1px solid rgba(0, 242, 255, 0.3);
-      color: white;
-      padding: 12px 16px;
-      border-radius: 9999px;
-      transition: all 0.3s ease;
-    }
+  // Обработчики форм
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError('');
+    try {
+      const res = await fetch('http://localhost:8000/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
 
-    .input-neon:focus {
-      border-color: var(--neon-blue);
-      outline: none;
-    }
+      const data = await res.json();
 
-    .tab-btn {
-      @apply px-5 py-2 rounded-full font-medium text-sm;
-    }
+      if (!res.ok) throw new Error(data.message || 'Ошибка входа');
 
-    .tab-active {
-      background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
-      color: white;
-      box-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
-    }
+      localStorage.setItem('auth', JSON.stringify({
+        isAuthenticated: true,
+        email,
+        role,
+        userId: data.userId
+      }));
 
-    .tab-inactive {
-      background: rgba(10, 10, 26, 0.7);
-      color: var(--neon-blue);
-      border: 1px solid rgba(0, 242, 255, 0.2);
+      window.location.href = '/index';
+    } catch (err) {
+      setError(err.message);
     }
-  </style>
-</head>
-<body class="flex items-center justify-center min-h-screen p-4">
-  <!-- Tabs -->
-  <div class="neon-card w-full max-w-md p-8">
-    <div class="flex mb-6">
-      <button id="login-tab" onclick="switchTab('login')" class="tab-btn tab-active flex-1 text-center">Вход</button>
-      <button id="register-tab" onclick="switchTab('register')" class="tab-btn tab-inactive flex-1 text-center">Регистрация</button>
+  };
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setError('');
+    try {
+      const res = await fetch('http://localhost:8000/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, role })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message || 'Ошибка регистрации');
+
+      localStorage.setItem('auth', JSON.stringify({
+        isAuthenticated: true,
+        email,
+        role,
+        userId: data.userId
+      }));
+
+      window.location.href = '/index';
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 flex items-center justify-center p-6">
+      {/* Модальное окно */}
+      <div className="w-full max-w-md backdrop-blur-xl bg-black/40 border border-white/10 rounded-2xl shadow-2xl p-8 animate-fadeIn">
+        <h2 className="text-3xl font-bold neon-text text-center mb-6">Финансовый тренажёр</h2>
+
+        {/* Вкладки */}
+        <div className="flex justify-between mb-6">
+          <button
+            onClick={() => setIsLogin(true)}
+            className={`px-6 py-2 rounded-full transition-all duration-300 ${isLogin ? 'bg-neon-blue text-white' : 'bg-white/10 hover:bg-white/20'}`}
+          >
+            Вход
+          </button>
+          <button
+            onClick={() => setIsLogin(false)}
+            className={`px-6 py-2 rounded-full transition-all duration-300 ${!isLogin ? 'bg-neon-pink text-white' : 'bg-white/10 hover:bg-white/20'}`}
+          >
+            Регистрация
+          </button>
+        </div>
+
+        {/* Форма входа */}
+        {isLogin ? (
+          <form onSubmit={handleLogin} className="space-y-4">
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-lg focus:outline-none focus:border-neon-blue"
+            />
+            <input
+              type="password"
+              placeholder="Пароль"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-lg focus:outline-none focus:border-neon-blue"
+            />
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-lg"
+            >
+              <option value="student">Ученик</option>
+              <option value="teacher">Учитель</option>
+            </select>
+            <button
+              type="submit"
+              className="w-full mt-4 py-3 bg-gradient-to-r from-neon-blue to-neon-purple rounded-lg font-medium hover:shadow-lg transition-shadow duration-300"
+            >
+              Войти
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleRegister} className="space-y-4">
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-lg focus:outline-none focus:border-neon-blue"
+            />
+            <input
+              type="password"
+              placeholder="Пароль"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-lg focus:outline-none focus:border-neon-blue"
+            />
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-lg"
+            >
+              <option value="student">Ученик</option>
+              <option value="teacher">Учитель</option>
+            </select>
+            <button
+              type="submit"
+              className="w-full mt-4 py-3 bg-gradient-to-r from-neon-pink to-neon-purple rounded-lg font-medium hover:shadow-lg transition-shadow duration-300"
+            >
+              Зарегистрироваться
+            </button>
+          </form>
+        )}
+
+        {/* Сообщение об ошибке */}
+        {error && <p className="mt-4 text-red-400 text-sm">{error}</p>}
+      </div>
     </div>
+  );
+};
 
-    <!-- Форма входа -->
-    <form id="loginForm" class="space-y-4">
-      <div>
-        <label for="email" class="block text-sm font-medium mb-1">Email</label>
-        <input type="email" id="email" required class="input-neon w-full">
-      </div>
-
-      <div>
-        <label for="password" class="block text-sm font-medium mb-1">Пароль</label>
-        <input type="password" id="password" required class="input-neon w-full">
-      </div>
-
-      <div>
-        <label for="role" class="block text-sm font-medium mb-1">Роль</label>
-        <select id="role" class="input-neon w-full">
-          <option value="student">Ученик</option>
-          <option value="teacher">Учитель</option>
-        </select>
-      </div>
-
-      <button type="submit" class="btn-neon w-full py-3 mt-2">Войти</button>
-    </form>
-
-    <!-- Форма регистрации -->
-    <form id="registerForm" class="hidden space-y-4">
-      <div>
-        <label for="reg-email" class="block text-sm font-medium mb-1">Email</label>
-        <input type="email" id="reg-email" required class="input-neon w-full">
-      </div>
-
-      <div>
-        <label for="reg-password" class="block text-sm font-medium mb-1">Пароль</label>
-        <input type="password" id="reg-password" required class="input-neon w-full">
-      </div>
-
-      <div>
-        <label for="reg-role" class="block text-sm font-medium mb-1">Роль</label>
-        <select id="reg-role" class="input-neon w-full">
-          <option value="student">Ученик</option>
-          <option value="teacher">Учитель</option>
-        </select>
-      </div>
-
-      <button type="submit" class="btn-neon w-full py-3 mt-2">Зарегистрироваться</button>
-    </form>
-
-    <div id="auth-error" class="text-red-400 text-sm hidden mt-4 text-center">
-      Неверный email или пароль
-    </div>
-  </div>
-
-  <!-- Supabase клиент -->
-  <script src="https://cdn.jsdelivr.net/npm/ @supabase/supabase-js@2"></script>
-  <script>
-    const supabaseUrl = 'https://tekxmqrbpdzmbcjszksg.supabase.co ';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRla3htcXJicGR6bWJjanN6a3NnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDczMzE4NTAsImV4cCI6MjA2MjkwNzg1MH0.YLJrqLBam99cYu0_ZTi-I57kYw7aCrilHyriTwLVYZ4'; 
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Проверка сессии при загрузке страницы
-    document.addEventListener('DOMContentLoaded', async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        window.location.href = 'index.html';
-      }
-    });
-  </script>
-
-  <!-- Логика переключения вкладок -->
-  <script>
-    function switchTab(tab) {
-      document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
-      document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
-
-      document.getElementById('login-tab').classList.remove('tab-active');
-      document.getElementById('login-tab').classList.add('tab-inactive');
-
-      document.getElementById('register-tab').classList.remove('tab-active');
-      document.getElementById('register-tab').classList.add('tab-inactive');
-
-      if (tab === 'login') {
-        document.getElementById('login-tab').classList.remove('tab-inactive');
-        document.getElementById('login-tab').classList.add('tab-active');
-      } else {
-        document.getElementById('register-tab').classList.remove('tab-inactive');
-        document.getElementById('register-tab').classList.add('tab-active');
-      }
-    }
-
-    // Обработчик формы входа
-    document.getElementById('loginForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
-      const role = document.getElementById('role').value;
-
-      const errorDiv = document.getElementById('auth-error');
-      errorDiv.classList.add('hidden');
-
-      try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: email,
-          password: password
-        });
-
-        if (error) throw error;
-
-        localStorage.setItem('auth', JSON.stringify({
-          isAuthenticated: true,
-          email: data.user.email,
-          role: role,
-          userId: data.user.id
-        }));
-
-        window.location.href = 'index.html';
-      } catch (err) {
-        console.error('Ошибка входа:', err.message);
-        errorDiv.textContent = 'Неверный email или пароль';
-        errorDiv.classList.remove('hidden');
-      }
-    });
-
-    // Обработчик формы регистрации
-    document.getElementById('registerForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-
-      const email = document.getElementById('reg-email').value.trim();
-      const password = document.getElementById('reg-password').value.trim();
-      const role = document.getElementById('reg-role').value;
-
-      const errorDiv = document.getElementById('auth-error');
-      errorDiv.classList.add('hidden');
-
-      try {
-        const { data, error } = await supabase.auth.signUp({
-          email: email,
-          password: password
-        });
-
-        if (error) throw error;
-
-        localStorage.setItem('auth', JSON.stringify({
-          isAuthenticated: true,
-          email: email,
-          role: role,
-          userId: data.user.id
-        }));
-
-        window.location.href = 'index.html';
-      } catch (err) {
-        console.error('Ошибка регистрации:', err.message);
-        errorDiv.textContent = 'Не удалось зарегистрироваться';
-        errorDiv.classList.remove('hidden');
-      }
-    });
-  </script>
-</body>
-</html>
+export default App;
