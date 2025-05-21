@@ -1651,6 +1651,24 @@
     }
   });
 </script>
+
+      // Сохраняем роль и статус авторизации в localStorage
+      localStorage.setItem('auth', JSON.stringify({
+        isAuthenticated: true,
+        email: data.user.email,
+        role: role,
+        userId: data.user.id
+      }));
+
+      // Перенаправление
+      window.location.href = 'index.html';
+    } catch (err) {
+      console.error('Ошибка авторизации:', err.message);
+      errorDiv.textContent = 'Неверный email или пароль';
+      errorDiv.classList.remove('hidden');
+    }
+  });
+</script>
 <script src="scripts.js"></script>
 </body>
 </html>
