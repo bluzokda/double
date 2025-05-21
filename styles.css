@@ -336,3 +336,26 @@ main {
 .hotbar button:hover {
   color: white;
 }
+
+.neon-text {
+  background: linear-gradient(90deg, #00f2ff, #b400ff, #ff00c3);
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: gradient 6s ease infinite;
+}
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.bg-neon-blue {
+  background: #00f2ff;
+}
+.bg-neon-purple {
+  background: #b400ff;
+}
+.bg-neon-pink {
+  background: #ff00c3;
+}
