@@ -337,6 +337,7 @@ main {
   color: white;
 }
 
+/* Для входа/регистрации */
 .neon-text {
   background: linear-gradient(90deg, #00f2ff, #b400ff, #ff00c3);
   -webkit-background-clip: text;
