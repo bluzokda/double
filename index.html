@@ -1601,5 +1601,19 @@
     alert('Таблица лидеров');
   }
 </script>
+<!-- проверка авторизации -->
+<script>
+  async function checkAuthAndRedirect() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      window.location.href = 'login.html'; // Если не авторизован — к логину
+    } else {
+      // Здесь можно загрузить данные пользователя, если нужно
+      console.log('Авторизован как:', session.user.email);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', checkAuthAndRedirect);
+</script>
 </body>
 </html>
