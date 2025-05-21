@@ -5,13 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Авторизация - Финансовый тренажёр</title>
 
-  <!-- TailwindCSS -->
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com "></script>
+
+  <!-- Шрифт Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter :wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Animate.css (для анимации) -->
+  <!-- Animate.css -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css " />
 
+  <!-- Стили -->
   <style>
     :root {
       --neon-blue: #00f2ff;
@@ -24,8 +27,6 @@
       font-family: 'Inter', sans-serif;
       background-color: var(--dark-bg);
       color: white;
-      min-height: 100vh;
-      overflow: hidden;
     }
 
     .neon-card {
@@ -34,37 +35,6 @@
       border-radius: 16px;
       border: 1px solid rgba(255, 255, 255, 0.1);
       box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
-      transition: all 0.3s ease;
-    }
-
-    .neon-text {
-      background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple), var(--neon-pink));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      background-size: 300% 300%;
-      animation: gradient 6s ease infinite;
-    }
-
-    @keyframes gradient {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    .btn-neon {
-      background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
-      color: white;
-      border: none;
-      transition: all 0.3s ease;
-      box-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .btn-neon:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 0 25px rgba(0, 242, 255, 0.6);
     }
 
     .input-neon {
@@ -80,17 +50,27 @@
       outline: none;
     }
 
+    .btn-neon {
+      background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+      color: white;
+      border: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
+    }
+
+    .btn-neon:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 25px rgba(0, 242, 255, 0.6);
+    }
+
     .tab-btn {
       padding: 12px 24px;
       font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
     }
 
     .tab-active {
       background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
       color: white;
-      box-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
     }
 
     .tab-inactive {
@@ -98,55 +78,19 @@
       color: var(--neon-blue);
       border: 1px solid rgba(0, 242, 255, 0.2);
     }
-
-    .tab-inactive:hover {
-      background: rgba(20, 20, 40, 0.9);
-      color: white;
-    }
-
-    .neon-bubble {
-      position: absolute;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(0,242,255,0.1) 0%, rgba(180,0,255,0.05) 70%, rgba(255,0,195,0) 100%);
-      animation: float linear infinite;
-      filter: blur(5px);
-      will-change: transform;
-      pointer-events: none;
-    }
-
-    @keyframes float {
-      0% {
-        transform: translate(0, 0) rotate(0deg);
-        opacity: 1;
-      }
-      100% {
-        transform: translate(var(--tx), var(--ty)) rotate(360deg);
-        opacity: 0;
-      }
-    }
-
-    .form-control {
-      margin-bottom: 1rem;
-    }
-
-    .error-message {
-      display: none;
-      margin-top: 0.5rem;
-      text-align: center;
-    }
   </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4 relative overflow-hidden">
   <!-- Анимированный фон -->
   <div id="bubbles-container" class="fixed inset-0 -z-10"></div>
 
-  <!-- Модальное окно -->
+  <!-- Модальное окно авторизации -->
   <div class="w-full max-w-md mx-auto z-10 animate__animated animate__fadeInUp">
     <div class="neon-card neon-border rounded-2xl p-8 shadow-2xl">
       <h2 class="text-3xl font-bold text-center mb-8 neon-text">Финансовый тренажёр</h2>
 
       <!-- Вкладки -->
-      <div class="flex justify-between border-b border-white/10 mb-6">
+      <div class="flex gap-2 mb-6">
         <button onclick="switchTab('login')" id="login-tab" class="tab-btn tab-active flex-1 text-center py-3">Войти</button>
         <button onclick="switchTab('register')" id="register-tab" class="tab-btn tab-inactive flex-1 text-center py-3">Регистрация</button>
       </div>
@@ -172,7 +116,7 @@
         </div>
 
         <button type="submit" class="btn-neon w-full py-3 mt-2">Войти</button>
-        <div id="login-error" class="error-message text-red-400 text-sm">Неверный email или пароль</div>
+        <div id="login-error" class="error-message text-red-400 text-sm hidden">Неверный email или пароль</div>
       </form>
 
       <!-- Форма регистрации -->
@@ -196,19 +140,20 @@
         </div>
 
         <button type="submit" class="btn-neon w-full py-3 mt-2">Зарегистрироваться</button>
-        <div id="register-error" class="error-message text-red-400 text-sm">Ошибка регистрации</div>
+        <div id="register-error" class="error-message text-red-400 text-sm hidden">Ошибка регистрации</div>
       </form>
     </div>
   </div>
 
-  <!-- Supabase клиент -->
+  <!-- Подключение Supabase клиента (без пробела в ссылке) -->
   <script src="https://cdn.jsdelivr.net/npm/ @supabase/supabase-js@2"></script>
   <script>
     const supabaseUrl = 'https://tekxmqrbpdzmbcjszksg.supabase.co ';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // замени на свой
+    const { createClient } = supabase;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Анимированные пузыри на фоне
+    // Анимация фона
     function createBubbles() {
       const container = document.getElementById('bubbles-container');
       if (!container) return;
@@ -249,29 +194,34 @@
       }
     }
 
-    // Переключение между вкладками
+    // Переключение между формами
     function switchTab(tab) {
-      document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
-      document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
+      const loginForm = document.getElementById('loginForm');
+      const registerForm = document.getElementById('registerForm');
+
+      if (loginForm && registerForm) {
+        loginForm.classList.toggle('hidden', tab !== 'login');
+        registerForm.classList.toggle('hidden', tab !== 'register');
+      }
 
       const loginTab = document.getElementById('login-tab');
       const registerTab = document.getElementById('register-tab');
 
       [loginTab, registerTab].forEach(t => {
-        t.classList.remove('tab-active');
-        t.classList.add('tab-inactive');
+        t?.classList.remove('tab-active');
+        t?.classList.add('tab-inactive');
       });
 
-      if (tab === 'login') {
+      if (tab === 'login' && loginTab) {
         loginTab.classList.remove('tab-inactive');
         loginTab.classList.add('tab-active');
-      } else {
+      } else if (registerTab) {
         registerTab.classList.remove('tab-inactive');
         registerTab.classList.add('tab-active');
       }
     }
 
-    // При загрузке проверяем, не залогинен ли пользователь
+    // Проверка сессии при загрузке
     document.addEventListener('DOMContentLoaded', async () => {
       const { data: { session }, error } = await supabase.auth.getSession();
       if (session) {
@@ -282,11 +232,12 @@
     // Обработчик формы входа
     document.getElementById('loginForm').addEventListener('submit', async function(e) {
       e.preventDefault();
+
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value.trim();
       const role = document.getElementById('role').value;
-
       const errorDiv = document.getElementById('login-error');
+
       errorDiv.classList.add('hidden');
 
       try {
@@ -311,12 +262,19 @@
     // Обработчик формы регистрации
     document.getElementById('registerForm').addEventListener('submit', async function(e) {
       e.preventDefault();
+
       const email = document.getElementById('reg-email').value.trim();
       const password = document.getElementById('reg-password').value.trim();
       const role = document.getElementById('reg-role').value;
-
       const errorDiv = document.getElementById('register-error');
+
       errorDiv.classList.add('hidden');
+
+      if (!email || !password) {
+        errorDiv.textContent = 'Введите email и пароль';
+        errorDiv.classList.remove('hidden');
+        return;
+      }
 
       try {
         const { data, error } = await supabase.auth.signUp({ email, password });
@@ -340,57 +298,5 @@
     // Запускаем анимацию фона
     document.addEventListener('DOMContentLoaded', createBubbles);
   </script>
-<script>
-document.getElementById('registerForm').addEventListener('submit', async function(e) {
-  e.preventDefault(); // Останавливаем стандартную отправку формы
-
-  const email = document.getElementById('reg-email').value.trim();
-  const password = document.getElementById('reg-password').value.trim();
-  const role = document.getElementById('reg-role').value;
-
-  const errorDiv = document.getElementById('register-error');
-  errorDiv.classList.add('hidden');
-
-  try {
-    // Регистрация через Supabase
-    const { data, error } = await supabase.auth.signUp({
-      email: email,
-      password: password
-    });
-
-    if (error) throw error;
-
-    // Сохраняем роль и статус авторизации в localStorage
-    localStorage.setItem('auth', JSON.stringify({
-      isAuthenticated: true,
-      email: email,
-      role: role,
-      userId: data.user.id
-    }));
-
-    // Перенаправляем на главную страницу
-    window.location.href = 'index.html';
-
-  } catch (err) {
-    console.error('Ошибка регистрации:', err.message);
-    errorDiv.textContent = 'Не удалось зарегистрироваться. Попробуйте другой email.';
-    errorDiv.classList.remove('hidden');
-  }
-});
-</script>
-<!-- Форма входа -->
-<form id="loginForm" class="space-y-4">
-  <!-- поля формы -->
-</form>
-<!-- Сообщение об ошибке -->
-<div id="register-error" class="error-message hidden">...</div>
-
-<!-- Скрипт регистрации -->
-<script>
-  document.getElementById('registerForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    // твой JS-код для регистрации
-  });
-</script>
 </body>
 </html>
