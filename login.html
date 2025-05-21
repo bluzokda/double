@@ -1,178 +1,145 @@
-import React, { useState, useEffect } from 'react';
+<!-- Модальное окно -->
+<div id="authModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 hidden p-4">
+  <div class="neon-card neon-border rounded-2xl overflow-hidden w-full max-w-lg mx-auto">
+    <!-- Вкладки -->
+    <div class="flex border-b border-white/10">
+      <button onclick="switchAuthTab('login')" id="login-tab" class="tab-btn tab-active px-6 py-4 font-medium text-neon-blue hover:text-white transition-all duration-300 w-full text-center">Вход</button>
+      <button onclick="switchAuthTab('register')" id="register-tab" class="tab-btn tab-inactive px-6 py-4 font-medium text-neon-pink hover:text-white transition-all duration-300 w-full text-center">Регистрация</button>
+    </div>
 
-const App = () => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [role, setRole] = useState('student');
-  const [error, setError] = useState('');
+    <!-- Форма входа -->
+    <form id="loginForm" class="p-6 space-y-4">
+      <div>
+        <label class="block text-sm font-medium mb-1">Email</label>
+        <input type="email" id="email" required class="input-neon w-full px-4 py-3 rounded-lg focus:outline-none" placeholder="your@email.com" />
+      </div>
 
-  // Проверка авторизации при загрузке
-  useEffect(() => {
-    const checkAuth = async () => {
-      const response = await fetch('http://localhost:8000/check-auth', {
-        method: 'GET',
-        credentials: 'include'
-      });
-      const data = await response.json();
-      if (data.authenticated) {
-        window.location.href = '/index';
-      }
-    };
-    checkAuth();
-  }, []);
+      <div>
+        <label class="block text-sm font-medium mb-1">Пароль</label>
+        <input type="password" id="password" required class="input-neon w-full px-4 py-3 rounded-lg focus:outline-none" placeholder="••••••••" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-1">Роль</label>
+        <select id="role" class="input-neon w-full px-4 py-3 rounded-lg">
+          <option value="student">Ученик</option>
+          <option value="teacher">Учитель</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn-neon w-full py-3 mt-2">Войти</button>
+      <div id="login-error" class="text-red-400 text-sm hidden text-center mt-2">Неверный email или пароль</div>
+    </form>
+
+    <!-- Форма регистрации -->
+    <form id="registerForm" class="p-6 space-y-4 hidden">
+      <div>
+        <label class="block text-sm font-medium mb-1">Email</label>
+        <input type="email" id="reg-email" required class="input-neon w-full px-4 py-3 rounded-lg focus:outline-none" placeholder="your@email.com" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-1">Пароль</label>
+        <input type="password" id="reg-password" required class="input-neon w-full px-4 py-3 rounded-lg focus:outline-none" placeholder="••••••••" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-1">Роль</label>
+        <select id="reg-role" class="input-neon w-full px-4 py-3 rounded-lg">
+          <option value="student">Ученик</option>
+          <option value="teacher">Учитель</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn-neon w-full py-3 mt-2">Зарегистрироваться</button>
+      <div id="register-error" class="text-red-400 text-sm hidden text-center mt-2">Ошибка регистрации</div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Показываем модальное окно при загрузке, если пользователь не авторизован
+  document.addEventListener('DOMContentLoaded', async () => {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (!session) {
+      document.getElementById('authModal').classList.remove('hidden');
+    }
+  });
+
+  // Переключение между вкладками
+  function switchAuthTab(tab) {
+    document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
+    document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
+
+    const loginTab = document.getElementById('login-tab');
+    const registerTab = document.getElementById('register-tab');
+
+    [loginTab, registerTab].forEach(t => {
+      t.classList.remove('tab-active');
+      t.classList.add('tab-inactive');
+    });
+
+    if (tab === 'login') {
+      loginTab.classList.remove('tab-inactive');
+      loginTab.classList.add('tab-active');
+    } else {
+      registerTab.classList.remove('tab-inactive');
+      registerTab.classList.add('tab-active');
+    }
+  }
 
   // Обработчики форм
-  const handleLogin = async (e) => {
+  document.getElementById('loginForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    setError('');
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const role = document.getElementById('role').value;
+    const errorDiv = document.getElementById('login-error');
+    errorDiv.classList.add('hidden');
+
     try {
-      const res = await fetch('http://localhost:8000/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.message || 'Ошибка входа');
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
 
       localStorage.setItem('auth', JSON.stringify({
         isAuthenticated: true,
-        email,
-        role,
-        userId: data.userId
+        email: data.user.email,
+        role: role,
+        userId: data.user.id
       }));
 
-      window.location.href = '/index';
+      window.location.reload(); // перезагружаем страницу после входа
     } catch (err) {
-      setError(err.message);
+      console.error('Ошибка входа:', err.message);
+      errorDiv.textContent = 'Неверный email или пароль';
+      errorDiv.classList.remove('hidden');
     }
-  };
+  });
 
-  const handleRegister = async (e) => {
+  document.getElementById('registerForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    setError('');
+    const email = document.getElementById('reg-email').value.trim();
+    const password = document.getElementById('reg-password').value.trim();
+    const role = document.getElementById('reg-role').value;
+    const errorDiv = document.getElementById('register-error');
+    errorDiv.classList.add('hidden');
+
     try {
-      const res = await fetch('http://localhost:8000/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, role })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.message || 'Ошибка регистрации');
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) throw error;
 
       localStorage.setItem('auth', JSON.stringify({
         isAuthenticated: true,
-        email,
-        role,
-        userId: data.userId
+        email: email,
+        role: role,
+        userId: data.user.id
       }));
 
-      window.location.href = '/index';
+      window.location.reload();
     } catch (err) {
-      setError(err.message);
+      console.error('Ошибка регистрации:', err.message);
+      errorDiv.textContent = 'Не удалось зарегистрироваться';
+      errorDiv.classList.remove('hidden');
     }
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 flex items-center justify-center p-6">
-      {/* Модальное окно */}
-      <div className="w-full max-w-md backdrop-blur-xl bg-black/40 border border-white/10 rounded-2xl shadow-2xl p-8 animate-fadeIn">
-        <h2 className="text-3xl font-bold neon-text text-center mb-6">Финансовый тренажёр</h2>
-
-        {/* Вкладки */}
-        <div className="flex justify-between mb-6">
-          <button
-            onClick={() => setIsLogin(true)}
-            className={`px-6 py-2 rounded-full transition-all duration-300 ${isLogin ? 'bg-neon-blue text-white' : 'bg-white/10 hover:bg-white/20'}`}
-          >
-            Вход
-          </button>
-          <button
-            onClick={() => setIsLogin(false)}
-            className={`px-6 py-2 rounded-full transition-all duration-300 ${!isLogin ? 'bg-neon-pink text-white' : 'bg-white/10 hover:bg-white/20'}`}
-          >
-            Регистрация
-          </button>
-        </div>
-
-        {/* Форма входа */}
-        {isLogin ? (
-          <form onSubmit={handleLogin} className="space-y-4">
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-lg focus:outline-none focus:border-neon-blue"
-            />
-            <input
-              type="password"
-              placeholder="Пароль"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-lg focus:outline-none focus:border-neon-blue"
-            />
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-lg"
-            >
-              <option value="student">Ученик</option>
-              <option value="teacher">Учитель</option>
-            </select>
-            <button
-              type="submit"
-              className="w-full mt-4 py-3 bg-gradient-to-r from-neon-blue to-neon-purple rounded-lg font-medium hover:shadow-lg transition-shadow duration-300"
-            >
-              Войти
-            </button>
-          </form>
-        ) : (
-          <form onSubmit={handleRegister} className="space-y-4">
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-lg focus:outline-none focus:border-neon-blue"
-            />
-            <input
-              type="password"
-              placeholder="Пароль"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-lg focus:outline-none focus:border-neon-blue"
-            />
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-lg"
-            >
-              <option value="student">Ученик</option>
-              <option value="teacher">Учитель</option>
-            </select>
-            <button
-              type="submit"
-              className="w-full mt-4 py-3 bg-gradient-to-r from-neon-pink to-neon-purple rounded-lg font-medium hover:shadow-lg transition-shadow duration-300"
-            >
-              Зарегистрироваться
-            </button>
-          </form>
-        )}
-
-        {/* Сообщение об ошибке */}
-        {error && <p className="mt-4 text-red-400 text-sm">{error}</p>}
-      </div>
-    </div>
-  );
-};
-
-export default App;
+  });
+</script>
