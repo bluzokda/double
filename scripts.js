@@ -15,11 +15,32 @@ let currentLevel = 'basic'; // 'basic' или 'advanced'
 let egeTasksCompleted = 0;
 let egeTotalScore = 0;
 
-// Проверяем авторизацию
-const authData = JSON.parse(localStorage.getItem('auth'));
-if (!authData?.isAuthenticated) {
+// Проверяем реальную сессию через Supabase
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    if (error || !session) {
+      window.location.href = 'login.html';
+    } else {
+      const userId = session.user.id;
+      const role = localStorage.getItem('role') || 'student';
+
+      console.log('Авторизован как:', session.user.email);
+      
+      // Загружаем прогресс пользователя
+      loadUserProgress(userId);
+
+      // Добавляем функционал учителя, если роль соответствует
+      if (role === 'teacher') {
+        addTeacherFeatures();
+      }
+    }
+  } catch (err) {
+    console.error('Ошибка проверки авторизации:', err.message);
     window.location.href = 'login.html';
-}
+  }
+});
 
 // Если пользователь - учитель, добавляем функционал
 if (authData?.role === 'teacher') {
