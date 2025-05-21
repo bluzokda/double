@@ -89,69 +89,67 @@
     <div class="neon-card neon-border rounded-2xl p-8 shadow-2xl">
       <h2 class="text-3xl font-bold text-center mb-8 neon-text">Финансовый тренажёр</h2>
 
-      <!-- Вкладки -->
-      <div class="flex gap-2 mb-6">
-        <button onclick="switchTab('login')" id="login-tab" class="tab-btn tab-active flex-1 text-center py-3">Войти</button>
-        <button onclick="switchTab('register')" id="register-tab" class="tab-btn tab-inactive flex-1 text-center py-3">Регистрация</button>
-      </div>
+       <!-- Вкладки -->
+    <div class="flex gap-4 mb-6">
+      <button onclick="switchTab('login')" id="login-tab" class="tab-btn tab-active flex-1 py-3">Войти</button>
+      <button onclick="switchTab('register')" id="register-tab" class="tab-btn tab-inactive flex-1 py-3">Регистрация</button>
+    </div>
 
-      <!-- Форма входа -->
-      <form id="loginForm" class="space-y-4">
-        <div class="form-control">
-          <label for="email" class="block text-sm font-medium mb-1">Email</label>
-          <input type="email" id="email" required class="input-neon w-full px-4 py-3 rounded-lg focus:outline-none" placeholder="your@email.com" />
-        </div>
+    <!-- Форма входа -->
+    <form id="loginForm" class="space-y-4">
+      <input type="email" id="email" required placeholder="Email" class="input-neon w-full px-4 py-3 rounded-lg focus:outline-none" />
+      <input type="password" id="password" required placeholder="••••••••" class="input-neon w-full px-4 py-3 rounded-lg focus:outline-none" />
+      <select id="role" class="input-neon w-full px-4 py-3 rounded-lg">
+        <option value="student">Ученик</option>
+        <option value="teacher">Учитель</option>
+      </select>
+      <button type="submit" class="btn-neon w-full py-3 mt-2">Войти</button>
+    </form>
 
-        <div class="form-control">
-          <label for="password" class="block text-sm font-medium mb-1">Пароль</label>
-          <input type="password" id="password" required class="input-neon w-full px-4 py-3 rounded-lg focus:outline-none" placeholder="••••••••" />
-        </div>
-
-        <div class="form-control">
-          <label for="role" class="block text-sm font-medium mb-1">Роль</label>
-          <select id="role" class="input-neon w-full px-4 py-3 rounded-lg">
-            <option value="student">Ученик</option>
-            <option value="teacher">Учитель</option>
-          </select>
-        </div>
-
-        <button type="submit" class="btn-neon w-full py-3 mt-2">Войти</button>
-        <div id="login-error" class="error-message text-red-400 text-sm hidden">Неверный email или пароль</div>
-      </form>
-
-      <!-- Форма регистрации -->
-      <form id="registerForm" class="hidden space-y-4">
-        <div class="form-control">
-          <label for="reg-email" class="block text-sm font-medium mb-1">Email</label>
-          <input type="email" id="reg-email" required class="input-neon w-full px-4 py-3 rounded-lg focus:outline-none" placeholder="your@email.com" />
-        </div>
-
-        <div class="form-control">
-          <label for="reg-password" class="block text-sm font-medium mb-1">Пароль</label>
-          <input type="password" id="reg-password" required class="input-neon w-full px-4 py-3 rounded-lg focus:outline-none" placeholder="••••••••" />
-        </div>
-
-        <div class="form-control">
-          <label for="reg-role" class="block text-sm font-medium mb-1">Роль</label>
-          <select id="reg-role" class="input-neon w-full px-4 py-3 rounded-lg">
-            <option value="student">Ученик</option>
-            <option value="teacher">Учитель</option>
-          </select>
-        </div>
-
-        <button type="submit" class="btn-neon w-full py-3 mt-2">Зарегистрироваться</button>
-        <div id="register-error" class="error-message text-red-400 text-sm hidden">Ошибка регистрации</div>
-      </form>
+    <!-- Форма регистрации -->
+    <form id="registerForm" class="hidden space-y-4">
+      <input type="email" id="reg-email" required placeholder="Email" class="input-neon w-full px-4 py-3 rounded-lg focus:outline-none" />
+      <input type="password" id="reg-password" required placeholder="••••••••" class="input-neon w-full px-4 py-3 rounded-lg focus:outline-none" />
+      <select id="reg-role" class="input-neon w-full px-4 py-3 rounded-lg">
+        <option value="student">Ученик</option>
+        <option value="teacher">Учитель</option>
+      </select>
+      <button type="submit" class="btn-neon w-full py-3 mt-2">Зарегистрироваться</button>
     </div>
   </div>
 
-  <!-- Подключение Supabase клиента (без пробела в ссылке) -->
+  <!-- Сообщения об ошибках -->
+  <div id="login-error" class="hidden text-red-400 text-sm mt-4">Неверный email или пароль</div>
+  <div id="register-error" class="hidden text-red-400 text-sm mt-4">Не удалось зарегистрироваться</div>
+
+  <!-- Подключение Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/ @supabase/supabase-js@2"></script>
   <script>
     const supabaseUrl = 'https://tekxmqrbpdzmbcjszksg.supabase.co ';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // замени на свой
     const { createClient } = supabase;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    function switchTab(tab) {
+      document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
+      document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
+
+      const loginTab = document.getElementById('login-tab');
+      const registerTab = document.getElementById('register-tab');
+
+      [loginTab, registerTab].forEach(t => {
+        t?.classList.remove('tab-active');
+        t?.classList.add('tab-inactive');
+      });
+
+      if (tab === 'login') {
+        loginTab.classList.remove('tab-inactive');
+        loginTab.classList.add('tab-active');
+      } else {
+        registerTab.classList.remove('tab-inactive');
+        registerTab.classList.add('tab-active');
+      }
+    }
 
     // Анимация фона
     function createBubbles() {
