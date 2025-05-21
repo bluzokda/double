@@ -1267,3 +1267,46 @@ async function showLeaderboard() {
 
   document.body.appendChild(modal);
 }
+
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  
+  const email = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value.trim();
+  const role = document.getElementById('reg-role').value;
+  const errorDiv = document.getElementById('register-error');
+  
+  errorDiv.classList.add('hidden');
+
+  if (!email || !password) {
+    errorDiv.textContent = 'Введите email и пароль';
+    errorDiv.classList.remove('hidden');
+    return;
+  }
+
+  try {
+    // Регистрация через Supabase
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password
+    });
+
+    if (error) throw error;
+
+    // Сохраняем роль в localStorage
+    localStorage.setItem('auth', JSON.stringify({
+      isAuthenticated: true,
+      email: email,
+      role: role,
+      userId: data.user.id
+    }));
+
+    // Перенаправление на главную
+    window.location.href = 'index.html';
+
+  } catch (err) {
+    console.error('Ошибка регистрации:', err.message);
+    errorDiv.textContent = 'Не удалось зарегистрироваться. Попробуйте другой email или пароль.';
+    errorDiv.classList.remove('hidden');
+  }
+});
