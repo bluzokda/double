@@ -1561,26 +1561,31 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- Хотбар -->
 <div class="hotbar">
-  <button onclick="openAuth()" class="flex flex-col items-center justify-center w-full h-full text-neon-blue hover:text-white transition-all duration-300 transform hover:scale-105">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-    </svg>
-    <span class="text-xs mt-1">Авторизация</span>
-  </button>
+  <div class="flex justify-around items-center h-16 px-2">
+    <!-- Авторизация -->
+    <button onclick="openAuth()" class="flex flex-row items-center justify-center w-full h-full text-neon-blue hover:text-white transition-all duration-300 transform hover:scale-105">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+      </svg>
+      <span class="text-xs">Авторизация</span>
+    </button>
 
-  <button onclick="openStats()" class="flex flex-col items-center justify-center w-full h-full text-neon-purple hover:text-white transition-all duration-300 transform hover:scale-105">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-    </svg>
-    <span class="text-xs mt-1">Статистика</span>
-  </button>
+    <!-- Статистика -->
+    <button onclick="openStats()" class="flex flex-row items-center justify-center w-full h-full text-neon-purple hover:text-white transition-all duration-300 transform hover:scale-105">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+      </svg>
+      <span class="text-xs">Статистика</span>
+    </button>
 
-  <button onclick="openTop()" class="flex flex-col items-center justify-center w-full h-full text-neon-pink hover:text-white transition-all duration-300 transform hover:scale-105">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-    </svg>
-    <span class="text-xs mt-1">Топ</span>
-  </button>
+    <!-- Топ -->
+    <button onclick="openTop()" class="flex flex-row items-center justify-center w-full h-full text-neon-pink hover:text-white transition-all duration-300 transform hover:scale-105">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+      </svg>
+      <span class="text-xs">Топ</span>
+    </button>
+  </div>
 </div>
 </body>
 </html>
