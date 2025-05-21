@@ -119,16 +119,16 @@ const supabaseUrl = 'https://tekxmqrbpdzmbcjszksg.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRla3htcXJicGR6bWJjanN6a3NnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDczMzE4NTAsImV4cCI6MjA2MjkwNzg1MH0.YLJrqLBam99cYu0_ZTi-I57kYw7aCrilHyriTwLVYZ4';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Инициализация при загрузке страницы
-document.addEventListener('DOMContentLoaded', async function() {
-  const { data: { session } } = await supabase.auth.getSession();
+// Проверка авторизации при загрузке страницы
+document.addEventListener('DOMContentLoaded', async function () {
+  const { data: { session }, error } = await supabase.auth.getSession();
 
-  if (!session) {
+  if (error || !session) {
+    // Если нет сессии — перенаправляем на login.html
     window.location.href = 'login.html';
   } else {
-    createBubbles();
-    generateDepositTask();
-    setEgeLevel('basic');
+    console.log('Пользователь авторизован:', session.user.email);
+    loadUserProgress(session.user.id);
   }
 });
 
