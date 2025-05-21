@@ -1141,3 +1141,21 @@ async function saveResponseToSupabase(taskType, userAnswer, isCorrect, correctAn
     console.error('Неожиданная ошибка:', err.message);
   }
 }
+// сохранение прогресса обучения
+async function updateProgress() {
+  scorePercent = Math.round((score / totalTasks) * 100);
+
+  document.getElementById('progress-bar').style.width = `${scorePercent}%`;
+  document.getElementById('total-score').textContent = `${scorePercent}%`;
+
+  // Сохраняем прогресс в Supabase
+  const { error } = await supabase.from('user_progress').upsert({
+    user_id: authData.userId,
+    progress: scorePercent,
+    correct_answers: score,
+    total_answers: totalTasks,
+    last_updated: new Date().toISOString()
+  });
+
+  if (error) console.error('Ошибка сохранения прогресса:', error.message);
+}
