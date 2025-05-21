@@ -1193,3 +1193,30 @@ const form = document.getElementById('depositForm');
 if (form) {
   form.addEventListener('submit', checkDepositAnswer);
 }
+async function saveResponseToSupabase(taskType, userAnswer, isCorrect, correctAnswer, questionText) {
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) return;
+
+    const userId = user.id;
+
+    const responseData = {
+      block: taskType,
+      user_answer: userAnswer.toString(),
+      is_correct: isCorrect,
+      correct_answer: correctAnswer.toString(),
+      question_text: questionText,
+      level: currentLevel,
+      response_time: new Date().toISOString(),
+      user_id: userId // Сохраняем ID пользователя
+    };
+
+    const { error } = await supabase.from('user_responses').insert([responseData]);
+
+    if (error) throw error;
+
+    console.log('Ответ успешно сохранён с user_id:', userId);
+  } catch (err) {
+    console.error('Ошибка сохранения в Supabase:', err.message);
+  }
+}
