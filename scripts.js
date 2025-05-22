@@ -31,16 +31,18 @@ let egeTotalScore = 0;
 // Проверяем реальную сессию через Supabase
 document.addEventListener('DOMContentLoaded', async () => {
   try {
+    const authData = JSON.parse(localStorage.getItem('auth'));
     const { data: { session }, error } = await supabase.auth.getSession();
-    if (error || !session) {
-      // Если нет сессии — показываем форму регистрации
-      document.getElementById('auth-container').classList.remove('hidden');
-    } else {
-      // Если есть сессия — скрываем форму и показываем основной контент
+
+    if (authData && authData.isAuthenticated && (!error && session)) {
+      // Пользователь авторизован — показываем основной контент
       document.getElementById('auth-container').classList.add('hidden');
       document.getElementById('main-content').classList.remove('hidden');
-      console.log('Пользователь авторизован:', session.user.email);
-      loadUserProgress(session.user.id); // Загружаем прогресс пользователя
+      loadUserProgress(authData.userId);
+    } else {
+      // Показываем форму
+      document.getElementById('auth-container').classList.remove('hidden');
+      document.getElementById('main-content').classList.add('hidden');
     }
   } catch (err) {
     console.error('Ошибка проверки сессии:', err.message);
