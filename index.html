@@ -1641,7 +1641,15 @@
   function openAuth() {
     document.getElementById('auth-container').classList.remove('hidden');
     const iframe = document.getElementById('auth-iframe');
-    iframe.contentWindow.openLogin(); // вызов функции openLogin() внутри login.html
+    iframe.contentWindow.openLogin(); // вызываем функцию из login.html
+  }
+
+  function openStats() {
+    alert("Просмотр статистики");
+  }
+
+  function openTop() {
+    alert("Таблица лидеров");
   }
 </script>
 
