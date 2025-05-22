@@ -721,3 +721,34 @@ document.addEventListener('DOMContentLoaded', function () {
     createBubbles();
     generateDepositTask();
 });
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const { data: { session }, error } = await supabase.auth.getSession();
+
+    if (error || !session) {
+      console.log("Пользователь не авторизован");
+    } else {
+      console.log("Пользователь авторизован:", session.user.email);
+      localStorage.setItem('auth', JSON.stringify({
+        isAuthenticated: true,
+        email: session.user.email,
+        role: 'student',
+        userId: session.user.id
+      }));
+    }
+  });
+
+  function openAuth() {
+    document.getElementById('auth-container').classList.remove('hidden');
+    const iframe = document.getElementById('auth-iframe');
+    iframe.contentWindow.openLogin(); // вызов функции openLogin() внутри login.html
+  }
+
+  function openStats() {
+    alert("Просмотр статистики");
+  }
+
+  function openTop() {
+    alert("Таблица лидеров");
+  }
+</script>
