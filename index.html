@@ -313,6 +313,11 @@
     <!-- Animated background bubbles -->
     <div id="bubbles-container" class="fixed inset-0 overflow-hidden -z-10"></div>
 
+<!-- Лоадер проверки авторизации -->
+    <div id="auth-loader" class="auth-loader">
+        <div class="neon-loader"></div>
+    </div>
+
     <!-- Header -->
     <header class="relative overflow-hidden py-12">
         <div class="absolute inset-0 bg-gradient-to-br from-blue-900/30 to-purple-900/30 opacity-50"></div>
@@ -1601,32 +1606,33 @@
     alert('Таблица лидеров');
   }
 </script>
-<!-- авторизация -->
 <script>
-  document.addEventListener('DOMContentLoaded', async () => {
-    try {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error || !session) {
-        window.location.href = 'login.html';
-      } else {
-        console.log('Пользователь авторизован:', session.user.email);
-
-        // Сохраняем данные пользователя в localStorage
-        localStorage.setItem('auth', JSON.stringify({
-          isAuthenticated: true,
-          email: session.user.email,
-          role: 'student', // Можно брать из формы или Supabase
-          userId: session.user.id
-        }));
-
-        loadUserProgress(session.user.id);
-      }
-    } catch (err) {
-      console.error('Ошибка проверки сессии:', err.message);
-      window.location.href = 'login.html';
-    }
-  });
-</script>
+//Проверка авторизации при загрузке
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const { data: { user }, error } = await supabase.auth.getUser();
+                
+                if (error || !user) {
+                    window.location.href = 'login.html';
+                } else {
+                    // Показываем основной контент
+                    document.getElementById('auth-loader').style.display = 'none';
+                    document.getElementById('app-content').classList.remove('hidden');
+                    
+                    // Инициализируем приложение
+                    if (typeof createBubbles === 'function') createBubbles();
+                    if (typeof generateDepositTask === 'function') generateDepositTask();
+                    if (typeof setEgeLevel === 'function') setEgeLevel('basic');
+                    
+                    // Загружаем прогресс пользователя
+                    if (typeof loadUserProgress === 'function') loadUserProgress(user.id);
+                }
+            } catch (err) {
+                console.error('Ошибка проверки авторизации:', err);
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
 <script src="scripts.js"></script>
 </body>
 </html>
