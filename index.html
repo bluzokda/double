@@ -1628,19 +1628,5 @@
   });
 </script>
 <script src="scripts.js"></script>
-<script>
-  document.addEventListener('DOMContentLoaded', async () => {
-    const authData = JSON.parse(localStorage.getItem('auth'));
-    const { data: { user }, error } = await supabase.auth.getUser();
-
-    if (error || !user) {
-      window.location.href = 'login.html';
-    } else {
-      // Если пользователь аутентифицирован — продолжаем
-      console.log('Пользователь вошёл:', user.email);
-      loadUserProgress(user.id);
-    }
-  });
-</script>
 </body>
 </html>
