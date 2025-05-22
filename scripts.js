@@ -32,17 +32,21 @@ let egeTotalScore = 0;
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     const { data: { session }, error } = await supabase.auth.getSession();
-       if (error || !session) {
-      window.location.href = 'login.html';
+    if (error || !session) {
+      // Если нет сессии — показываем форму регистрации
+      document.getElementById('auth-container').classList.remove('hidden');
     } else {
-      const userId = session.user.id;
-      const role = localStorage.getItem('role') || 'student';
-
-      console.log('Авторизован как:', session.user.email);
-      
-      // Загружаем прогресс пользователя
-      loadUserProgress(userId);
-
+      // Если есть сессия — скрываем форму и показываем основной контент
+      document.getElementById('auth-container').classList.add('hidden');
+      document.getElementById('main-content').classList.remove('hidden');
+      console.log('Пользователь авторизован:', session.user.email);
+      loadUserProgress(session.user.id); // Загружаем прогресс пользователя
+    }
+  } catch (err) {
+    console.error('Ошибка проверки сессии:', err.message);
+    document.getElementById('auth-container').classList.remove('hidden');
+  }
+});
       // Добавляем функционал учителя, если роль соответствует
       if (role === 'teacher') {
         addTeacherFeatures();
@@ -53,15 +57,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.location.href = 'login.html';
   }
 });
-
-// Если пользователь - учитель, добавляем функционал
-if (authData?.role === 'teacher') {
-    document.addEventListener('DOMContentLoaded', function() {
-        addTeacherFeatures();
-    });
-}
-
-function addTeacherFeatures() {
     // Добавляем кнопку просмотра ответов учеников
     const tabsContainer = document.querySelector('.flex.flex-wrap.gap-3.mb-8');
     if (tabsContainer) {
