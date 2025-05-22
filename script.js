@@ -723,20 +723,34 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 <script>
   document.addEventListener('DOMContentLoaded', async () => {
-    const { data: { session }, error } = await supabase.auth.getSession();
-
-    if (error || !session) {
-      console.log("Пользователь не авторизован");
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    
+    // Проверяем, открыт ли документ в iframe
+    if (window.self !== window.top) {
+      // Если да — не перенаправляем
+      if (!user) {
+        switchTab('login');
+        createBubbles();
+      }
     } else {
-      console.log("Пользователь авторизован:", session.user.email);
-      localStorage.setItem('auth', JSON.stringify({
-        isAuthenticated: true,
-        email: session.user.email,
-        role: 'student',
-        userId: session.user.id
-      }));
+      // Если нет (открыт напрямую), то можно перенаправить
+      if (error || !user) {
+        switchTab('login');
+        createBubbles();
+      } else {
+        window.location.href = 'index.html';
+      }
     }
-  });
+  } catch {
+    if (window.self === window.top) {
+      window.location.href = 'index.html';
+    } else {
+      switchTab('login');
+      createBubbles();
+    }
+  }
+});
 
   function openAuth() {
     document.getElementById('auth-container').classList.remove('hidden');
