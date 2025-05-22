@@ -68,16 +68,13 @@
     .auth-error {
       color: #ff6b6b;
       text-align: center;
-      margin-bottom: 1rem;
+      margin-top: 0.5rem;
     }
   </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4 relative overflow-hidden">
-  <!-- Анимированный фон -->
-  <div id="bubbles-container" class="fixed inset-0 -z-10 pointer-events-none"></div>
-
   <!-- Модальное окно авторизации -->
-  <div id="auth-modal" class="w-full max-w-md mx-auto z-10 animate__animated animate__fadeInUp hidden">
+  <div class="w-full max-w-md mx-auto z-10">
     <div class="neon-card neon-border rounded-2xl p-8 shadow-2xl">
       <h2 class="text-3xl font-bold text-center mb-8 neon-text">Финансовый тренажёр</h2>
 
@@ -88,7 +85,7 @@
       </div>
 
       <!-- Сообщение об ошибке -->
-      <div id="auth-error" class="auth-error hidden"></div>
+      <div id="auth-error" class="auth-error hidden mb-4"></div>
 
       <!-- Форма входа -->
       <form id="loginForm" class="space-y-4">
@@ -133,21 +130,11 @@
   <!-- Подключение Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/ @supabase/supabase-js@2"></script>
   <script>
-    // Проверка авторизации
-    document.addEventListener('DOMContentLoaded', async () => {
-      try {
-        const { data: { user }, error } = await supabase.auth.getUser();
-        if (!user) {
-          // Если пользователь не авторизован — не показываем форму
-          console.log("Пользователь не авторизован, форма не отображается");
-        } else {
-          // Если пользователь уже вошёл — редиректим его
-          window.location.href = "index.html";
-        }
-      } catch (err) {
-        console.error("Ошибка проверки сессии:", err.message);
-      }
-    });
+    // Инициализация Supabase
+    const supabaseUrl = 'https://tekxmqrbpdzmbcjszksg.supabase.co ';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // замените на свой ключ
+    const { createClient } = supabase;
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Переключение между формами
     function switchTab(tab) {
@@ -172,28 +159,108 @@
       document.getElementById('auth-error').classList.add('hidden');
     }
 
-    // Открытие формы авторизации
-    function openAuthModal() {
-      document.getElementById('auth-modal').classList.remove('hidden');
-    }
+    // Проверка сессии только при прямом открытии login.html
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Проверяем, открыта ли страница напрямую (не во фрейме)
+      if (window.self === window.top) {
+        try {
+          const { data: { session }, error } = await supabase.auth.getSession();
+          if (session) {
+            window.location.href = 'index.html';
+          } else {
+            switchTab('login'); // Показываем форму входа
+            createBubbles();   // Анимационные пузыри
+          }
+        } catch (err) {
+          switchTab('login');
+          createBubbles();
+        }
+      } else {
+        // Если открыто как iframe, то НЕ перенаправляем
+        switchTab('login');
+        createBubbles();
+      }
+    });
 
-    // Закрытие формы авторизации
-    function closeAuthModal() {
-      document.getElementById('auth-modal').classList.add('hidden');
-    }
+    // Обработка формы входа
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const role = document.getElementById('role').value;
+      const errorDiv = document.getElementById('auth-error');
+      errorDiv.classList.add('hidden');
+
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+
+        localStorage.setItem('auth', JSON.stringify({
+          isAuthenticated: true,
+          email: data.user.email,
+          role: role,
+          userId: data.user.id
+        }));
+
+        window.location.href = 'index.html';
+
+      } catch (err) {
+        console.error('Ошибка входа:', err.message);
+        errorDiv.textContent = 'Неверный email или пароль.';
+        errorDiv.classList.remove('hidden');
+      }
+    });
+
+    // Обработка формы регистрации
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const email = document.getElementById('reg-email').value.trim();
+      const password = document.getElementById('reg-password').value.trim();
+      const role = document.getElementById('reg-role').value;
+      const errorDiv = document.getElementById('auth-error');
+      errorDiv.classList.add('hidden');
+
+      if (!email || !password) {
+        errorDiv.textContent = 'Введите email и пароль.';
+        errorDiv.classList.remove('hidden');
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase.auth.signUp({ 
+          email, 
+          password,
+          options: {
+            data: {
+              role: role
+            }
+          }
+        });
+
+        if (error) throw error;
+
+        localStorage.setItem('auth', JSON.stringify({
+          isAuthenticated: true,
+          email: email,
+          role: role,
+          userId: data.user.id
+        }));
+
+        window.location.href = 'index.html';
+
+      } catch (err) {
+        console.error('Ошибка регистрации:', err.message);
+        errorDiv.textContent = 'Не удалось зарегистрироваться.';
+        errorDiv.classList.remove('hidden');
+      }
+    });
 
     // Анимация фона
     function createBubbles() {
       const container = document.getElementById('bubbles-container');
       if (!container) return;
       container.innerHTML = '';
-
-      const colors = [
-        'rgba(0, 242, 255, 0.1)',
-        'rgba(180, 0, 255, 0.1)',
-        'rgba(255, 0, 195, 0.1)'
-      ];
-
+      const colors = ['rgba(0, 242, 255, 0.1)', 'rgba(180, 0, 255, 0.1)', 'rgba(255, 0, 195, 0.1)'];
       for (let i = 0; i < 20; i++) {
         const bubble = document.createElement('div');
         bubble.className = 'neon-bubble absolute rounded-full opacity-50';
@@ -222,10 +289,10 @@
       }
     }
 
-    // Вызывается из index.html, если нужно показать форму
+    // Открытие формы из index.html
     window.openLogin = function () {
+      switchTab('login');
       createBubbles();
-      document.getElementById('auth-modal').classList.remove('hidden');
     };
   </script>
 </body>
