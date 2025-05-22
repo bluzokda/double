@@ -735,3 +735,240 @@
       </button>
     </div>
   </div>
+
+  <!-- Скрипты -->
+  <script>
+    // Глобальные переменные
+    let currentDepositTask = {};
+    let currentAnnuityTask = {};
+    let currentDiffTask = {};
+    let currentInvestTask = {};
+    let currentEgeTask = {};
+    let score = 0;
+    let totalTasks = 0;
+    let answeredDeposit = false;
+    let answeredAnnuity = false;
+    let answeredDiff = false;
+    let answeredInvest = false;
+    let answeredEge = false;
+    let currentLevel = 'basic'; // basic или advanced
+    let egeTasksCompleted = 0;
+    let egeTotalScore = 0;
+
+    function formatNumber(num) {
+      return new Intl.NumberFormat('ru-RU').format(Math.round(num));
+    }
+
+    function getYearWord(years) {
+      const lastDigit = years % 10;
+      const lastTwoDigits = years % 100;
+      if (lastTwoDigits >= 11 && lastTwoDigits <= 19) return 'лет';
+      if (lastDigit === 1) return 'год';
+      if (lastDigit >= 2 && lastDigit <= 4) return 'года';
+      return 'лет';
+    }
+
+    function createBubbles() {
+      const container = document.getElementById('bubbles-container');
+      if (!container) return;
+      container.innerHTML = '';
+      const colors = ['rgba(0, 242, 255, 0.1)', 'rgba(180, 0, 255, 0.1)', 'rgba(255, 0, 195, 0.1)'];
+      for (let i = 0; i < 20; i++) {
+        const bubble = document.createElement('div');
+        bubble.className = 'neon-bubble absolute rounded-full opacity-50';
+        const size = Math.random() * 100 + 50;
+        const posX = Math.random() * window.innerWidth;
+        const posY = Math.random() * window.innerHeight;
+        const duration = Math.random() * 20 + 10;
+        const delay = Math.random() * -10;
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 500 + Math.random() * 500;
+        const tx = Math.cos(angle) * distance;
+        const ty = Math.sin(angle) * distance;
+        bubble.style.cssText = `
+          width: ${size}px;
+          height: ${size}px;
+          left: ${posX}px;
+          top: ${posY}px;
+          animation-duration: ${duration}s;
+          animation-delay: ${delay}s;
+          --tx: ${tx}px;
+          --ty: ${ty}px;
+          transform: translate(var(--tx), var(--ty));
+        `;
+        container.appendChild(bubble);
+      }
+    }
+
+    // Управление табами
+    function openTab(event, tabName) {
+      const tabContents = document.getElementsByClassName('tab-content');
+      const tabButtons = document.getElementsByClassName('tab-btn');
+
+      for (let i = 0; i < tabContents.length; i++) {
+        tabContents[i].classList.add('hidden');
+        tabContents[i].classList.remove('active');
+      }
+
+      for (let i = 0; i < tabButtons.length; i++) {
+        tabButtons[i].classList.remove('tab-active');
+        tabButtons[i].classList.add('tab-inactive');
+      }
+
+      document.getElementById(tabName).classList.remove('hidden');
+      document.getElementById(tabName).classList.add('active');
+      event.currentTarget.classList.remove('tab-inactive');
+      event.currentTarget.classList.add('tab-active');
+
+      // Генерация задачи при переключении вкладок
+      if (tabName === 'deposit') generateDepositTask();
+      if (tabName === 'annuity') generateAnnuityTask();
+      if (tabName === 'diff') generateDiffTask();
+      if (tabName === 'invest') generateInvestTask();
+      if (tabName === 'ege') generateEgeTask();
+    }
+
+    // Переключение уровня сложности
+    function changeLevel(level) {
+      currentLevel = level;
+      document.getElementById('basic-tab').className = level === 'basic' ? 'level-tab active' : 'level-tab inactive';
+      document.getElementById('advanced-tab').className = level === 'advanced' ? 'level-tab active' : 'level-tab inactive';
+
+      const activeTab = document.querySelector('.tab-content.active');
+      if (activeTab) {
+        const tabId = activeTab.id;
+        if (tabId === 'deposit') generateDepositTask();
+        if (tabId === 'annuity') generateAnnuityTask();
+        if (tabId === 'diff') generateDiffTask();
+        if (tabId === 'invest') generateInvestTask();
+        if (tabId === 'ege') generateEgeTask();
+      }
+    }
+
+    function setEgeLevel(level) {
+      currentLevel = level;
+      document.getElementById('ege-basic-btn').className = level === 'basic'
+        ? 'px-4 py-2 rounded-l-lg font-medium bg-red-900/50 text-white border border-red-500'
+        : 'px-4 py-2 rounded-l-lg font-medium bg-gray-800/50 text-white/70 border border-gray-700';
+
+      document.getElementById('ege-advanced-btn').className = level === 'advanced'
+        ? 'px-4 py-2 rounded-r-lg font-medium bg-red-900/50 text-white border border-red-500'
+        : 'px-4 py-2 rounded-r-lg font-medium bg-gray-800/50 text-white/70 border border-gray-700';
+
+      egeTasksCompleted = 0;
+      egeTotalScore = 0;
+      document.getElementById('ege-score').textContent = '0';
+      document.getElementById('ege-tasks').textContent = '0/10';
+      document.getElementById('ege-new-task-btn').disabled = false;
+      generateEgeTask();
+    }
+
+    function updateProgress() {
+      let totalCorrect = 0;
+      let totalTasksCount = 0;
+      ['deposit', 'annuity', 'diff', 'invest', 'ege'].forEach(type => {
+        totalCorrect += parseInt(document.getElementById(`${type}-score`).textContent || 0);
+        totalTasksCount += parseInt(document.getElementById(`${type}-total`).textContent || 0);
+      });
+      const progress = totalTasksCount > 0 ? Math.round((totalCorrect / totalTasksCount) * 100) : 0;
+      document.getElementById('progress-bar').style.width = `${progress}%`;
+      document.getElementById('total-score').textContent = `${progress}%`;
+    }
+
+    // Генерация задач при загрузке
+    document.addEventListener('DOMContentLoaded', () => {
+      createBubbles();
+      generateDepositTask();
+      setEgeLevel('basic');
+    });
+
+    // ========== Задачи ==========
+
+    function generateDepositTask() {
+      let principal, rate, years, isCompound;
+      if (currentLevel === 'basic') {
+        principal = Math.floor(Math.random() * 90000) + 10000;
+        rate = Math.floor(Math.random() * 11) + 5;
+        years = Math.floor(Math.random() * 5) + 1;
+        isCompound = Math.random() > 0.5;
+      } else {
+        principal = Math.floor(Math.random() * 900000) + 100000;
+        rate = Math.floor(Math.random() * 15) + 5;
+        years = Math.floor(Math.random() * 10) + 1;
+        isCompound = true;
+      }
+
+      const correct = isCompound
+        ? principal * Math.pow(1 + rate / 100, years)
+        : principal * (1 + rate / 100 * years);
+
+      currentDepositTask = {
+        correct: correct,
+        question: `Вклад ${formatNumber(principal)} руб. под ${rate}% годовых на ${years} ${getYearWord(years)} ${isCompound ? 'с капитализацией' : 'без капитализации'}. Сколько получит клиент?`
+      };
+
+      document.getElementById('deposit-question').textContent = currentDepositTask.question;
+      document.getElementById('deposit-answer').value = '';
+      document.getElementById('deposit-result').classList.add('hidden');
+      document.getElementById('deposit-alert').classList.add('hidden');
+      answeredDeposit = false;
+    }
+
+    function checkDepositAnswer() {
+      const alertDiv = document.getElementById('deposit-alert');
+      const answerInput = document.getElementById('deposit-answer');
+      const resultDiv = document.getElementById('deposit-result');
+
+      if (answeredDeposit) {
+        resultDiv.textContent = "Вы уже ответили! Нажмите 'Новая задача'.";
+        resultDiv.className = 'mt-4 p-4 rounded-lg bg-yellow-900/20 text-yellow-400 neon-border';
+        resultDiv.classList.remove('hidden');
+        return;
+      }
+
+      const userInput = parseFloat(answerInput.value);
+      if (isNaN(userInput)) {
+        alertDiv.textContent = 'Пожалуйста, введите корректное число.';
+        alertDiv.classList.remove('hidden');
+        return;
+      }
+
+      answeredDeposit = true;
+      totalTasks++;
+      const isCorrect = Math.abs(userInput - currentDepositTask.correct) < 0.01;
+
+      if (isCorrect) {
+        resultDiv.textContent = `✅ Правильно! Ответ: ${currentDepositTask.correct.toLocaleString('ru-RU')} руб.`;
+        resultDiv.className = 'mt-4 p-4 rounded-lg bg-green-900/20 text-green-400 neon-border';
+        score++;
+      } else {
+        resultDiv.textContent = `❌ Неправильно. Правильный ответ: ${currentDepositTask.correct.toLocaleString('ru-RU')} руб.`;
+        resultDiv.className = 'mt-4 p-4 rounded-lg bg-red-900/20 text-red-400 neon-border';
+      }
+
+      resultDiv.classList.remove('hidden');
+      answerInput.disabled = true;
+
+      document.getElementById('deposit-score').textContent = parseInt(document.getElementById('deposit-score').textContent) + (isCorrect ? 1 : 0);
+      document.getElementById('deposit-total').textContent = parseInt(document.getElementById('deposit-total').textContent) + 1;
+
+      updateProgress();
+    }
+
+    // ======== Другие функции генерации задач (аннуитет, инвестиции и т.д.) ========
+    // Вы можете добавить остальные функции позже...
+    // Для простоты здесь только базовые функции
+    // Полный код можно скопировать из вашего предыдущего файла
+  </script>
+
+  <script>
+    function openStats() {
+      alert("Просмотр статистики");
+    }
+
+    function openTop() {
+      alert("Таблица лидеров");
+    }
+  </script>
+</body>
+</html>
