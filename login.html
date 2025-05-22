@@ -1,281 +1,286 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Авторизация | Финансовый тренажёр</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Авторизация | Финансовый тренажёр</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <style>
+        :root {
+            --neon-blue: #00f2ff;
+            --neon-purple: #b400ff;
+            --dark-bg: #0a0a1a;
+        }
 
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com "></script>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--dark-bg);
+            color: white;
+        }
 
-  <!-- Шрифт Inter -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter :wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        .neon-card {
+            background: rgba(10, 10, 26, 0.7);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+        }
 
-  <!-- Animate.css -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css "/>
+        .input-neon {
+            background: rgba(10, 10, 26, 0.7);
+            border: 1px solid rgba(0, 242, 255, 0.3);
+            color: white;
+            transition: all 0.3s ease;
+        }
 
-  <style>
-    :root {
-      --neon-blue: #00f2ff;
-      --neon-purple: #b400ff;
-      --dark-bg: #0a0a1a;
-    }
+        .input-neon:focus {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 0 3px rgba(0, 242, 255, 0.2);
+            outline: none;
+        }
 
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: var(--dark-bg);
-      color: white;
-    }
+        .btn-neon {
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
+        }
 
-    .neon-card {
-      background: rgba(10, 10, 26, 0.7);
-      backdrop-filter: blur(12px);
-      border-radius: 16px;
-    }
+        .tab-btn.tab-active {
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+            color: white;
+        }
 
-    .input-neon {
-      background: rgba(10, 10, 26, 0.7);
-      border: 1px solid rgba(0, 242, 255, 0.3);
-      color: white;
-      transition: all 0.3s ease;
-    }
-
-    .input-neon:focus {
-      border-color: var(--neon-blue);
-      box-shadow: 0 0 0 3px rgba(0, 242, 255, 0.2);
-      outline: none;
-    }
-
-    .btn-neon {
-      background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
-      color: white;
-      border: none;
-      transition: all 0.3s ease;
-      box-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
-    }
-
-    .tab-btn.tab-active {
-      background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
-      color: white;
-    }
-
-    .tab-btn.tab-inactive {
-      background: rgba(10, 10, 26, 0.7);
-      color: var(--neon-blue);
-      border: 1px solid rgba(0, 242, 255, 0.2);
-    }
-  </style>
+        .tab-btn.tab-inactive {
+            background: rgba(10, 10, 26, 0.7);
+            color: var(--neon-blue);
+            border: 1px solid rgba(0, 242, 255, 0.2);
+        }
+        
+        .auth-error {
+            color: #ff6b6b;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+    </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4 relative overflow-hidden">
+    <!-- Анимированный фон -->
+    <div id="bubbles-container" class="fixed inset-0 -z-10 pointer-events-none"></div>
 
-<!-- Анимированный фон -->
-<div id="bubbles-container" class="fixed inset-0 -z-10 pointer-events-none"></div>
+    <!-- Модальное окно авторизации -->
+    <div class="w-full max-w-md mx-auto z-10 animate__animated animate__fadeInUp">
+        <div class="neon-card neon-border rounded-2xl p-8 shadow-2xl">
+            <h2 class="text-3xl font-bold text-center mb-8 neon-text">Финансовый тренажёр</h2>
 
-<!-- Модальное окно авторизации -->
-<div class="w-full max-w-md mx-auto z-10 animate__animated animate__fadeInUp">
-  <div class="neon-card neon-border rounded-2xl p-8 shadow-2xl">
-    <h2 class="text-3xl font-bold text-center mb-8 neon-text">Финансовый тренажёр</h2>
+            <!-- Вкладки -->
+            <div class="flex gap-4 mb-6">
+                <button onclick="switchTab('login')" id="login-tab" class="tab-btn tab-active flex-1 py-3">Войти</button>
+                <button onclick="switchTab('register')" id="register-tab" class="tab-btn tab-inactive flex-1 py-3">Регистрация</button>
+            </div>
 
-    <!-- Вкладки -->
-    <div class="flex gap-4 mb-6">
-      <button onclick="switchTab('login')" id="login-tab" class="tab-btn tab-active flex-1 py-3">Войти</button>
-      <button onclick="switchTab('register')" id="register-tab" class="tab-btn tab-inactive flex-1 py-3">Регистрация</button>
+            <!-- Сообщение об ошибке -->
+            <div id="auth-error" class="auth-error hidden"></div>
+
+            <!-- Форма входа -->
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Email</label>
+                    <input type="email" id="email" required placeholder="Email"
+                           class="input-neon w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-neon-blue ring-opacity-50">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Пароль</label>
+                    <input type="password" id="password" required placeholder="••••••••"
+                           class="input-neon w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-neon-blue ring-opacity-50">
+                </div>
+                <select id="role" class="input-neon w-full px-4 py-3 rounded-lg">
+                    <option value="student">Ученик</option>
+                    <option value="teacher">Учитель</option>
+                </select>
+                <button type="submit" class="btn-neon w-full py-3 mt-2">Войти</button>
+            </form>
+
+            <!-- Форма регистрации -->
+            <form id="registerForm" class="hidden space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Email</label>
+                    <input type="email" id="reg-email" required placeholder="Email"
+                           class="input-neon w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-neon-blue ring-opacity-50">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Пароль</label>
+                    <input type="password" id="reg-password" required placeholder="••••••••"
+                           class="input-neon w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-neon-blue ring-opacity-50">
+                </div>
+                <select id="reg-role" class="input-neon w-full px-4 py-3 rounded-lg">
+                    <option value="student">Ученик</option>
+                    <option value="teacher">Учитель</option>
+                </select>
+                <button type="submit" class="btn-neon w-full py-3">Зарегистрироваться</button>
+            </form>
+        </div>
     </div>
 
-    <!-- Сообщение об ошибке -->
-    <div id="auth-error" class="hidden text-red-400 text-sm mt-2 text-center mb-4"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Инициализация Supabase
+        const supabaseUrl = 'https://tekxmqrbpdzmbcjszksg.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRla3htcXJicGR6bWJjanN6a3NnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDczMzE4NTAsImV4cCI6MjA2MjkwNzg1MH0.YLJrqLBam99cYu0_ZTi-I57kYw7aCrilHyriTwLVYZ4';
+        const supabase = createClient(supabaseUrl, supabaseKey);
 
-    <!-- Форма входа -->
-    <form id="loginForm" class="space-y-4">
-      <div>
-        <label class="block text-sm font-medium mb-1">Email</label>
-        <input type="email" id="email" required placeholder="Email"
-               class="input-neon w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-neon-blue ring-opacity-50">
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">Пароль</label>
-        <input type="password" id="password" required placeholder="••••••••"
-               class="input-neon w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-neon-blue ring-opacity-50">
-      </div>
-      <select id="role" class="input-neon w-full px-4 py-3 rounded-lg">
-        <option value="student">Ученик</option>
-        <option value="teacher">Учитель</option>
-      </select>
-      <button type="submit" class="btn-neon w-full py-3 mt-2">Войти</button>
-    </form>
+        // Проверка авторизации при загрузке
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const { data: { user }, error } = await supabase.auth.getUser();
+                if (user) {
+                    window.location.href = 'index.html';
+                } else {
+                    switchTab('login');
+                    createBubbles();
+                }
+            } catch {
+                switchTab('login');
+                createBubbles();
+            }
+        });
 
-    <!-- Форма регистрации -->
-    <form id="registerForm" class="hidden space-y-4">
-      <div>
-        <label class="block text-sm font-medium mb-1">Email</label>
-        <input type="email" id="reg-email" required placeholder="Email"
-               class="input-neon w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-neon-blue ring-opacity-50">
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">Пароль</label>
-        <input type="password" id="reg-password" required placeholder="••••••••"
-               class="input-neon w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-neon-blue ring-opacity-50">
-      </div>
-      <select id="reg-role" class="input-neon w-full px-4 py-3 rounded-lg">
-        <option value="student">Ученик</option>
-        <option value="teacher">Учитель</option>
-      </select>
-      <button type="submit" class="btn-neon w-full py-3">Зарегистрироваться</button>
-    </form>
-  </div>
-</div>
+        // Переключение между формами
+        function switchTab(tab) {
+            document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
+            document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
 
-<script>
-  // Инициализация Supabase
-  const supabaseUrl = 'https://tekxmqrbpdzmbcjszksg.supabase.co '; // ⚠️ Убраны пробелы
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // 🛑 Замените на свой настоящий ключ
-  const { createClient } = supabase;
-  const supabase = createClient(supabaseUrl, supabaseKey);
+            const loginTab = document.getElementById('login-tab');
+            const registerTab = document.getElementById('register-tab');
 
-  // Переключение между формами
-  function switchTab(tab) {
-    document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
-    document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
+            if (tab === 'login') {
+                loginTab.classList.add('tab-active');
+                loginTab.classList.remove('tab-inactive');
+                registerTab.classList.add('tab-inactive');
+                registerTab.classList.remove('tab-active');
+            } else {
+                registerTab.classList.add('tab-active');
+                registerTab.classList.remove('tab-inactive');
+                loginTab.classList.add('tab-inactive');
+                loginTab.classList.remove('tab-active');
+            }
+            
+            document.getElementById('auth-error').classList.add('hidden');
+        }
 
-    const loginTab = document.getElementById('login-tab');
-    const registerTab = document.getElementById('register-tab');
+        // Обработка формы входа
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const role = document.getElementById('role').value;
+            const errorDiv = document.getElementById('auth-error');
 
-    if (tab === 'login') {
-      loginTab.classList.add('tab-active');
-      loginTab.classList.remove('tab-inactive');
-      registerTab.classList.add('tab-inactive');
-      registerTab.classList.remove('tab-active');
-    } else {
-      registerTab.classList.add('tab-active');
-      registerTab.classList.remove('tab-inactive');
-      loginTab.classList.add('tab-inactive');
-      loginTab.classList.remove('tab-active');
-    }
-  }
+            errorDiv.classList.add('hidden');
 
-  // Проверка авторизации
-  document.addEventListener('DOMContentLoaded', async () => {
-    try {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (user) {
-        // Если уже вошли — перенаправляем
-        window.location.href = 'index.html';
-      } else {
-        switchTab('login'); // Если нет — открываем форму входа
-      }
-    } catch {
-      switchTab('login');
-    }
-  });
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) throw error;
 
-  // Обработка формы входа
-  document.getElementById('loginForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value.trim();
-    const role = document.getElementById('role').value;
-    const errorDiv = document.getElementById('auth-error');
+                localStorage.setItem('auth', JSON.stringify({
+                    isAuthenticated: true,
+                    email: data.user.email,
+                    role: role,
+                    userId: data.user.id
+                }));
 
-    errorDiv.classList.add('hidden');
+                window.location.href = 'index.html';
+            } catch (err) {
+                console.error('Ошибка входа:', err.message);
+                errorDiv.textContent = 'Неверный email или пароль';
+                errorDiv.classList.remove('hidden');
+            }
+        });
 
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+        // Обработка формы регистрации
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value.trim();
+            const role = document.getElementById('reg-role').value;
+            const errorDiv = document.getElementById('auth-error');
 
-      localStorage.setItem('auth', JSON.stringify({
-        isAuthenticated: true,
-        email: data.user.email,
-        role: role,
-        userId: data.user.id
-      }));
+            errorDiv.classList.add('hidden');
 
-      window.location.href = 'index.html';
+            if (!email || !password) {
+                errorDiv.textContent = 'Введите email и пароль';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
 
-    } catch (err) {
-      console.error('Ошибка входа:', err.message);
-      errorDiv.textContent = 'Неверный email или пароль.';
-      errorDiv.classList.remove('hidden');
-    }
-  });
+            try {
+                const { data, error } = await supabase.auth.signUp({ 
+                    email, 
+                    password,
+                    options: {
+                        data: {
+                            role: role
+                        }
+                    }
+                });
+                if (error) throw error;
 
-  // Обработка формы регистрации
-  document.getElementById('registerForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const email = document.getElementById('reg-email').value.trim();
-    const password = document.getElementById('reg-password').value.trim();
-    const role = document.getElementById('reg-role').value;
-    const errorDiv = document.getElementById('auth-error');
+                localStorage.setItem('auth', JSON.stringify({
+                    isAuthenticated: true,
+                    email: email,
+                    role: role,
+                    userId: data.user.id
+                }));
 
-    errorDiv.classList.add('hidden');
+                window.location.href = 'index.html';
+            } catch (err) {
+                console.error('Ошибка регистрации:', err.message);
+                errorDiv.textContent = 'Не удалось зарегистрироваться. Возможно, email уже используется';
+                errorDiv.classList.remove('hidden');
+            }
+        });
 
-    if (!email || !password) {
-      errorDiv.textContent = 'Введите email и пароль.';
-      errorDiv.classList.remove('hidden');
-      return;
-    }
+        // Анимация фона
+        function createBubbles() {
+            const container = document.getElementById('bubbles-container');
+            if (!container) return;
+            container.innerHTML = '';
 
-    try {
-      const { data, error } = await supabase.auth.signUp({ email, password });
-      if (error) throw error;
+            const colors = [
+                'rgba(0, 242, 255, 0.1)',
+                'rgba(180, 0, 255, 0.1)',
+                'rgba(255, 0, 195, 0.1)'
+            ];
 
-      localStorage.setItem('auth', JSON.stringify({
-        isAuthenticated: true,
-        email: email,
-        role: role,
-        userId: data.user.id
-      }));
+            for (let i = 0; i < 20; i++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'neon-bubble absolute rounded-full opacity-50';
+                const size = Math.random() * 100 + 50;
+                const posX = Math.random() * window.innerWidth;
+                const posY = Math.random() * window.innerHeight;
+                const duration = Math.random() * 20 + 10;
+                const delay = Math.random() * -10;
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 500 + Math.random() * 500;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
 
-      window.location.href = 'index.html';
-
-    } catch (err) {
-      console.error('Ошибка регистрации:', err.message);
-      errorDiv.textContent = 'Не удалось зарегистрироваться.';
-      errorDiv.classList.remove('hidden');
-    }
-  });
-
-  // Анимация фона
-  function createBubbles() {
-    const container = document.getElementById('bubbles-container');
-    if (!container) return;
-    container.innerHTML = '';
-
-    const colors = [
-      'rgba(0, 242, 255, 0.1)',
-      'rgba(180, 0, 255, 0.1)',
-      'rgba(255, 0, 195, 0.1)'
-    ];
-
-    for (let i = 0; i < 20; i++) {
-      const bubble = document.createElement('div');
-      bubble.className = 'neon-bubble absolute rounded-full opacity-50';
-      const size = Math.random() * 100 + 50;
-      const posX = Math.random() * window.innerWidth;
-      const posY = Math.random() * window.innerHeight;
-      const duration = Math.random() * 20 + 10;
-      const delay = Math.random() * -10;
-      const angle = Math.random() * Math.PI * 2;
-      const distance = 500 + Math.random() * 500;
-      const tx = Math.cos(angle) * distance;
-      const ty = Math.sin(angle) * distance;
-
-      bubble.style.cssText = `
-        width: ${size}px;
-        height: ${size}px;
-        left: ${posX}px;
-        top: ${posY}px;
-        background: ${colors[Math.floor(Math.random() * colors.length)]};
-        animation-duration: ${duration}s;
-        animation-delay: ${delay}s;
-        --tx: ${tx}px;
-        --ty: ${ty}px;
-        transform: translate(var(--tx), var(--ty));
-      `;
-      container.appendChild(bubble);
-    }
-  }
-
-  document.addEventListener('DOMContentLoaded', createBubbles);
-</script>
+                bubble.style.cssText = `
+                    width: ${size}px;
+                    height: ${size}px;
+                    left: ${posX}px;
+                    top: ${posY}px;
+                    background: ${colors[Math.floor(Math.random() * colors.length)]};
+                    animation-duration: ${duration}s;
+                    animation-delay: ${delay}s;
+                    --tx: ${tx}px;
+                    --ty: ${ty}px;
+                    transform: translate(var(--tx), var(--ty));
+                `;
+                container.appendChild(bubble);
+            }
+        }
+    </script>
 </body>
 </html>
