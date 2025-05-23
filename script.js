@@ -38,13 +38,6 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-// Добавьте этот код в вашу существующую функцию toggleMenu()
-function toggleMenu() {
-  const sidebar = document.getElementById('sidebar-menu');
-  const overlay = document.getElementById('menu-overlay');
-  sidebar.classList.toggle('open');
-  overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
-}
 // Открываем модальное окно при клике на "Авторизация" в меню
 document.querySelector('aside li:nth-child(4) a').addEventListener('click', function(e) {
   e.preventDefault();
@@ -75,6 +68,20 @@ let currentLevel = 'basic'; // 'basic' или 'advanced'
 let egeTasksCompleted = 0;
 let egeTotalScore = 0;
 
+// Управление боковым меню
+function toggleMenu() {
+  const sidebar = document.getElementById('sidebar-menu');
+  const overlay = document.getElementById('menu-overlay');
+  
+  // Проверка на существование элементов для надежности
+  if (sidebar && overlay) {
+    sidebar.classList.toggle('open');
+    overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+    
+    // Блокировка прокрутки тела страницы при открытом меню
+    document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
+  }
+}
 // Создание анимированного фона
 function createBubbles() {
     const container = document.getElementById('bubbles-container');
