@@ -11,9 +11,178 @@ let answeredAnnuity = false;
 let answeredDiff = false;
 let answeredInvest = false;
 let answeredEge = false;
-let currentLevel = 'basic'; // 'basic' или 'advanced'
+let currentLevel = 'basic';
 let egeTasksCompleted = 0;
 let egeTotalScore = 0;
+
+// ==================== АВТОРИЗАЦИЯ ====================
+
+// Функции для работы с модальным окном авторизации
+function openAuthModal() {
+    document.getElementById('auth-modal').classList.remove('hidden');
+    showLoginForm();
+}
+
+function closeAuthModal() {
+    document.getElementById('auth-modal').classList.add('hidden');
+}
+
+function showLoginForm() {
+    document.getElementById('login-form').classList.remove('hidden');
+    document.getElementById('register-form').classList.add('hidden');
+    document.getElementById('auth-message').classList.add('hidden');
+    document.getElementById('auth-modal-title').textContent = 'Авторизация';
+    document.getElementById('auth-modal-subtitle').textContent = 'Войдите в свой аккаунт';
+}
+
+function showRegisterForm() {
+    document.getElementById('login-form').classList.add('hidden');
+    document.getElementById('register-form').classList.remove('hidden');
+    document.getElementById('auth-message').classList.add('hidden');
+    document.getElementById('auth-modal-title').textContent = 'Регистрация';
+    document.getElementById('auth-modal-subtitle').textContent = 'Создайте новый аккаунт';
+}
+
+// Обработчики форм авторизации и регистрации
+document.getElementById('login-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    handleLogin();
+});
+
+document.getElementById('register-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    handleRegister();
+});
+
+// Обработчик для кнопки "Авторизация" в меню
+document.getElementById('auth-link').addEventListener('click', function(e) {
+    e.preventDefault();
+    toggleMenu();
+    openAuthModal();
+});
+
+// Функция обработки входа
+function handleLogin() {
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    const rememberMe = document.getElementById('remember-me').checked;
+    
+    // Простая валидация
+    if (!email || !password) {
+        showAuthMessage('Пожалуйста, заполните все поля', 'error');
+        return;
+    }
+    
+    // Проверка с localStorage
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    const user = users.find(u => u.email === email && u.password === password);
+    
+    if (user) {
+        // Сохраняем данные пользователя
+        const userData = { email: user.email, name: user.name };
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+        
+        if (rememberMe) {
+            localStorage.setItem('rememberMe', 'true');
+        } else {
+            localStorage.removeItem('rememberMe');
+        }
+        
+        showAuthMessage('Успешный вход!', 'success');
+        setTimeout(() => {
+            closeAuthModal();
+            updateUserUI(userData);
+        }, 1000);
+    } else {
+        showAuthMessage('Неверный email или пароль', 'error');
+    }
+}
+
+// Функция обработки регистрации
+function handleRegister() {
+    const name = document.getElementById('register-name').value;
+    const email = document.getElementById('register-email').value;
+    const password = document.getElementById('register-password').value;
+    const confirmPassword = document.getElementById('register-confirm-password').value;
+    
+    // Валидация
+    if (!name || !email || !password || !confirmPassword) {
+        showAuthMessage('Пожалуйста, заполните все поля', 'error');
+        return;
+    }
+    
+    if (password !== confirmPassword) {
+        showAuthMessage('Пароли не совпадают', 'error');
+        return;
+    }
+    
+    if (password.length < 6) {
+        showAuthMessage('Пароль должен содержать минимум 6 символов', 'error');
+        return;
+    }
+    
+    // Проверяем, есть ли уже пользователь с таким email
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    const userExists = users.some(u => u.email === email);
+    
+    if (userExists) {
+        showAuthMessage('Пользователь с таким email уже существует', 'error');
+        return;
+    }
+    
+    // Добавляем нового пользователя
+    users.push({ name, email, password });
+    localStorage.setItem('users', JSON.stringify(users));
+    
+    showAuthMessage('Регистрация прошла успешно! Теперь вы можете войти.', 'success');
+    showLoginForm();
+}
+
+// Функция для отображения сообщений
+function showAuthMessage(message, type) {
+    const messageDiv = document.getElementById('auth-message');
+    messageDiv.textContent = message;
+    messageDiv.className = `text-center text-sm ${type === 'error' ? 'text-red-500' : 'text-green-500'}`;
+    messageDiv.classList.remove('hidden');
+}
+
+// Обновление интерфейса после входа
+function updateUserUI(userData) {
+    // Обновляем меню
+    const authLink = document.getElementById('auth-link');
+    authLink.textContent = 'Выйти';
+    authLink.onclick = function(e) {
+        e.preventDefault();
+        logout();
+    };
+    
+    // Обновляем приветствие в шапке
+    const greeting = document.getElementById('user-greeting');
+    greeting.textContent = `Привет, ${userData.name}!`;
+    greeting.classList.remove('hidden');
+    
+    // Обновляем ссылку на профиль
+    const profileLink = document.getElementById('profile-link');
+    profileLink.textContent = 'Мой профиль';
+}
+
+// Выход из системы
+function logout() {
+    localStorage.removeItem('currentUser');
+    location.reload(); // Перезагружаем страницу
+}
+
+// Проверка авторизации при загрузке страницы
+function checkAuthOnLoad() {
+    const rememberMe = localStorage.getItem('rememberMe') === 'true';
+    const userData = JSON.parse(localStorage.getItem('currentUser'));
+    
+    if (rememberMe && userData) {
+        updateUserUI(userData);
+    }
+}
+
+// ==================== ОСНОВНОЙ ФУНКЦИОНАЛ ====================
 
 // Создание анимированного фона
 function createBubbles() {
@@ -77,7 +246,6 @@ function openTab(event, tabName) {
     event.currentTarget.classList.remove('tab-inactive');
     event.currentTarget.classList.add('tab-active');
     
-    // Генерация задач при переключении вкладок
     if (tabName === 'deposit') generateDepositTask();
     if (tabName === 'annuity') generateAnnuityTask();
     if (tabName === 'diff') generateDiffTask();
@@ -89,11 +257,9 @@ function openTab(event, tabName) {
 function changeLevel(level) {
     currentLevel = level;
     
-    // Обновляем стили кнопок
     document.getElementById('basic-tab').className = level === 'basic' ? 'level-tab active' : 'level-tab inactive';
     document.getElementById('advanced-tab').className = level === 'advanced' ? 'level-tab active' : 'level-tab inactive';
     
-    // Перегенерируем текущую задачу
     const activeTab = document.querySelector('.tab-content.active');
     if (activeTab) {
         const tabId = activeTab.id;
@@ -109,18 +275,15 @@ function changeLevel(level) {
 function setEgeLevel(level) {
     currentLevel = level;
     
-    // Обновляем стили кнопок
     document.getElementById('ege-basic-btn').className = level === 'basic' ? 'px-4 py-2 rounded-l-lg font-medium bg-red-900/50 text-white border border-red-500' : 'px-4 py-2 rounded-l-lg font-medium bg-gray-800/50 text-white/70 border border-gray-700';
     document.getElementById('ege-advanced-btn').className = level === 'advanced' ? 'px-4 py-2 rounded-r-lg font-medium bg-red-900/50 text-white border border-red-500' : 'px-4 py-2 rounded-r-lg font-medium bg-gray-800/50 text-white/70 border border-gray-700';
     
-    // Сброс счетчиков при смене уровня
     egeTasksCompleted = 0;
     egeTotalScore = 0;
     document.getElementById('ege-score').textContent = '0';
     document.getElementById('ege-tasks').textContent = '0/10';
     document.getElementById('ege-new-task-btn').disabled = false;
     
-    // Генерируем новую задачу
     generateEgeTask();
 }
 
@@ -139,11 +302,42 @@ function updateProgress() {
     document.getElementById('total-score').textContent = `${progress}%`;
 }
 
+// Управление меню
+function toggleMenu() {
+    const sidebar = document.getElementById('sidebar-menu');
+    const overlay = document.getElementById('menu-overlay');
+    sidebar.classList.toggle('open');
+    overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+}
+
+function closeMenu() {
+    document.getElementById('sidebar-menu').classList.remove('open');
+    document.getElementById('menu-overlay').style.display = 'none';
+}
+
 // Инициализация
 document.addEventListener('DOMContentLoaded', function() {
     createBubbles();
     generateDepositTask();
     setEgeLevel('basic');
+    checkAuthOnLoad();
+    
+    // Обработчики событий
+    document.getElementById('close-menu').addEventListener('click', () => {
+        closeMenu();
+    });
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeMenu();
+        }
+    });
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
+            closeMenu();
+        }
+    });
 });
 
 // Проверка ответов для вкладов
