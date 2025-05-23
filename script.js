@@ -1,3 +1,45 @@
+// ==================== АВТОРИЗАЦИЯ ====================
+
+// Функции для работы с модальным окном
+function openAuthModal() {
+  document.getElementById('auth-modal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden'; // Блокируем прокрутку фона
+}
+
+function closeAuthModal() {
+  document.getElementById('auth-modal').classList.add('hidden');
+  document.body.style.overflow = ''; // Восстанавливаем прокрутку
+}
+
+// Обработчик формы входа
+document.getElementById('login-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const email = document.getElementById('auth-email').value;
+  const password = document.getElementById('auth-password').value;
+  
+  // Простейшая проверка (в реальном приложении нужна проверка с сервером)
+  if(email && password) {
+    alert('Вход выполнен успешно! В реальном приложении здесь будет проверка с сервером.');
+    closeAuthModal();
+  } else {
+    alert('Пожалуйста, заполните все поля');
+  }
+});
+
+// Открываем модальное окно при клике на "Авторизация" в меню
+document.querySelector('aside li:nth-child(4) a').addEventListener('click', function(e) {
+  e.preventDefault();
+  closeMenu(); // Закрываем меню
+  openAuthModal(); // Открываем авторизацию
+});
+
+// Закрытие по ESC
+document.addEventListener('keydown', function(e) {
+  if(e.key === 'Escape' && !document.getElementById('auth-modal').classList.contains('hidden')) {
+    closeAuthModal();
+  }
+});
 // Глобальные переменные
 let currentDepositTask = {};
 let currentAnnuityTask = {};
