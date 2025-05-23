@@ -1,32 +1,50 @@
 // ==================== АВТОРИЗАЦИЯ ====================
 
-// Функции для работы с модальным окном
+// Функции для модального окна авторизации
 function openAuthModal() {
   document.getElementById('auth-modal').classList.remove('hidden');
-  document.body.style.overflow = 'hidden'; // Блокируем прокрутку фона
+  document.body.style.overflow = 'hidden';
 }
 
 function closeAuthModal() {
   document.getElementById('auth-modal').classList.add('hidden');
-  document.body.style.overflow = ''; // Восстанавливаем прокрутку
+  document.body.style.overflow = '';
 }
 
-// Обработчик формы входа
-document.getElementById('login-form').addEventListener('submit', function(e) {
-  e.preventDefault();
+// Обработчик клика по пункту "Авторизация" в меню
+document.addEventListener('DOMContentLoaded', function() {
+  const authLinks = document.querySelectorAll('aside li:nth-child(4) a');
   
-  const email = document.getElementById('auth-email').value;
-  const password = document.getElementById('auth-password').value;
-  
-  // Простейшая проверка (в реальном приложении нужна проверка с сервером)
-  if(email && password) {
-    alert('Вход выполнен успешно! В реальном приложении здесь будет проверка с сервером.');
-    closeAuthModal();
-  } else {
-    alert('Пожалуйста, заполните все поля');
-  }
+  authLinks.forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      closeMenu(); // Закрываем меню, если оно открыто
+      openAuthModal(); // Открываем модальное окно авторизации
+    });
+  });
+
+  // Обработчик формы авторизации
+  document.getElementById('login-form')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const email = document.getElementById('auth-email').value;
+    const password = document.getElementById('auth-password').value;
+    
+    if(email && password) {
+      alert('Форма авторизации работает! В реальном приложении здесь будет проверка с сервером.');
+      closeAuthModal();
+    } else {
+      alert('Пожалуйста, заполните все поля');
+    }
+  });
 });
 
+// Добавьте этот код в вашу существующую функцию toggleMenu()
+function toggleMenu() {
+  const sidebar = document.getElementById('sidebar-menu');
+  const overlay = document.getElementById('menu-overlay');
+  sidebar.classList.toggle('open');
+  overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+}
 // Открываем модальное окно при клике на "Авторизация" в меню
 document.querySelector('aside li:nth-child(4) a').addEventListener('click', function(e) {
   e.preventDefault();
