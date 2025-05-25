@@ -1073,3 +1073,85 @@ document.querySelector('aside li:nth-child(4) a').addEventListener('click', func
   toggleMenu();
   openAuthModal();
 });
+
+<script>
+// Функции для работы с модальным окном авторизации
+function openAuthModal() {
+  document.getElementById('auth-modal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAuthModal() {
+  document.getElementById('auth-modal').classList.add('hidden');
+  document.body.style.overflow = '';
+  document.getElementById('auth-error').classList.add('hidden');
+  document.getElementById('login-form').reset();
+}
+
+// Обработчик формы входа
+document.getElementById('login-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const email = document.getElementById('auth-email').value;
+  const password = document.getElementById('auth-password').value;
+  const submitBtn = document.querySelector('#login-form button[type="submit"]');
+  const loader = document.getElementById('auth-loader');
+  const authText = document.getElementById('auth-text');
+  const errorDiv = document.getElementById('auth-error');
+
+  // Валидация
+  if (!email || !password) {
+    errorDiv.textContent = 'Пожалуйста, заполните все поля';
+    errorDiv.classList.remove('hidden');
+    return;
+  }
+
+  try {
+    // Показываем индикатор загрузки
+    submitBtn.disabled = true;
+    authText.classList.add('hidden');
+    loader.classList.remove('hidden');
+    errorDiv.classList.add('hidden');
+
+    // Здесь должна быть реальная логика авторизации
+    // Это пример с имитацией запроса
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // В реальном приложении здесь будет fetch запрос к API
+    if (password.length < 6) {
+      throw new Error('Неверный email или пароль');
+    }
+
+    // Успешная авторизация
+    closeAuthModal();
+    showToast('Вы успешно вошли!');
+    
+  } catch (error) {
+    errorDiv.textContent = error.message;
+    errorDiv.classList.remove('hidden');
+  } finally {
+    submitBtn.disabled = false;
+    authText.classList.remove('hidden');
+    loader.classList.add('hidden');
+  }
+});
+
+// Функция для показа уведомлений
+function showToast(message) {
+  const toast = document.createElement('div');
+  toast.className = 'fixed bottom-4 right-4 bg-green-900/80 text-white px-4 py-2 rounded-lg shadow-lg';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.classList.add('opacity-0', 'transition-opacity', 'duration-300');
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+// Обновите обработчик клика по пункту меню "Авторизация"
+document.querySelector('#sidebar-menu a[href="#"]').addEventListener('click', function(e) {
+  e.preventDefault();
+  closeMenu();
+  openAuthModal();
+});
+</script>
