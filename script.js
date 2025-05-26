@@ -1,13 +1,15 @@
 // ==================== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ====================
+
+// Данные авторизации
 let authToken = localStorage.getItem('authToken') || null;
 let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
 
+// Данные тренажёра
 let currentDepositTask = {};
 let currentAnnuityTask = {};
 let currentDiffTask = {};
 let currentInvestTask = {};
 let currentEgeTask = {};
-
 let score = 0;
 let totalTasks = 0;
 let answeredDeposit = false;
@@ -20,207 +22,246 @@ let egeTasksCompleted = 0;
 let egeTotalScore = 0;
 
 // ==================== АВТОРИЗАЦИЯ ====================
+
+// Инициализация интерфейса авторизации
 function initAuthUI() {
-  const authBtn = document.getElementById('auth-btn');
-  const profileBtn = document.getElementById('profile-btn');
-  if (authToken && currentUser) {
-    authBtn.classList.add('hidden');
-    profileBtn.classList.remove('hidden');
-    document.getElementById('user-email')?.textContent(currentUser.email);
-    updateMenuForAuthUser();
-  } else {
-    authBtn.classList.remove('hidden');
-    profileBtn.classList.add('hidden');
-    updateMenuForGuest();
-  }
+    const authBtn = document.getElementById('auth-btn');
+    const profileBtn = document.getElementById('profile-btn');
+    
+    if (authToken && currentUser) {
+        // Пользователь авторизован
+        authBtn.classList.add('hidden');
+        profileBtn.classList.remove('hidden');
+        document.getElementById('user-email').textContent = currentUser.email;
+        
+        // Обновляем меню
+        updateMenuForAuthUser();
+    } else {
+        // Пользователь не авторизован
+        authBtn.classList.remove('hidden');
+        profileBtn.classList.add('hidden');
+        
+        // Обновляем меню
+        updateMenuForGuest();
+    }
 }
 
+// Обновление меню для авторизованного пользователя
 function updateMenuForAuthUser() {
-  const menuItems = `
-    <li><a href="#" onclick="showProfile()">Профиль</a></li>
-    <li><a href="#">Статистика</a></li>
-    <li><a href="#">Таблица лидеров</a></li>
-    <li><a href="#" onclick="logout()">Выйти</a></li>`;
-  document.querySelector('#sidebar-menu ul').innerHTML = menuItems;
+    const menuItems = `
+        <li><a href="#" onclick="showProfile()">Профиль</a></li>
+        <li><a href="#">Статистика</a></li>
+        <li><a href="#">Таблица лидеров</a></li>
+        <li><a href="#" onclick="logout()">Выйти</a></li>
+    `;
+    document.querySelector('#sidebar-menu ul').innerHTML = menuItems;
 }
 
+// Обновление меню для гостя
 function updateMenuForGuest() {
-  const menuItems = `
-    <li><a href="#">О тренажёре</a></li>
-    <li><a href="#">Таблица лидеров</a></li>
-    <li><a href="#" onclick="openAuthModal()">Войти</a></li>
-    <li><a href="#" onclick="openAuthModal('register')">Регистрация</a></li>`;
-  document.querySelector('#sidebar-menu ul').innerHTML = menuItems;
+    const menuItems = `
+        <li><a href="#">О тренажёре</a></li>
+        <li><a href="#">Таблица лидеров</a></li>
+        <li><a href="#" onclick="openAuthModal()">Войти</a></li>
+        <li><a href="#" onclick="openAuthModal('register')">Регистрация</a></li>
+    `;
+    document.querySelector('#sidebar-menu ul').innerHTML = menuItems;
 }
 
+// Функции для модального окна авторизации
 function openAuthModal(mode = 'login') {
-  const modal = document.getElementById('auth-modal');
-  const title = modal.querySelector('h2');
-  const submitBtn = modal.querySelector('#auth-submit');
-  const switchLink = modal.querySelector('#auth-switch-mode');
-
-  if (mode === 'login') {
-    title.textContent = 'Авторизация';
-    submitBtn.textContent = 'Войти';
-    switchLink.innerHTML = 'Нет аккаунта? <a href="#" class="text-blue-400 hover:underline" onclick="openAuthModal(\'register\')">Зарегистрируйтесь</a>';
-  } else {
-    title.textContent = 'Регистрация';
-    submitBtn.textContent = 'Зарегистрироваться';
-    switchLink.innerHTML = 'Уже есть аккаунт? <a href="#" class="text-blue-400 hover:underline" onclick="openAuthModal(\'login\')">Войдите</a>';
-  }
-
-  modal.dataset.mode = mode;
-  modal.classList.add('active');
-  document.body.style.overflow = 'hidden';
+    const modal = document.getElementById('auth-modal');
+    const title = modal.querySelector('h2');
+    const submitBtn = modal.querySelector('#auth-submit');
+    const switchLink = modal.querySelector('#auth-switch-mode');
+    
+    if (mode === 'login') {
+        title.textContent = 'Авторизация';
+        submitBtn.textContent = 'Войти';
+        switchLink.innerHTML = 'Нет аккаунта? <a href="#" class="text-blue-400 hover:underline" onclick="openAuthModal(\'register\')">Зарегистрируйтесь</a>';
+    } else {
+        title.textContent = 'Регистрация';
+        submitBtn.textContent = 'Зарегистрироваться';
+        switchLink.innerHTML = 'Уже есть аккаунт? <a href="#" class="text-blue-400 hover:underline" onclick="openAuthModal(\'login\')">Войдите</a>';
+    }
+    
+    modal.dataset.mode = mode;
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
 }
 
 function closeAuthModal() {
-  const modal = document.getElementById('auth-modal');
-  modal.classList.remove('active');
-  document.body.style.overflow = '';
-  document.getElementById('auth-error').classList.add('hidden');
-  document.getElementById('login-form').reset();
+    const modal = document.getElementById('auth-modal');
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    document.getElementById('auth-error').classList.add('hidden');
+    document.getElementById('login-form').reset();
 }
 
+// Валидация формы
 function validateAuthForm(email, password, isRegister = false) {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const errorElement = document.getElementById('auth-error');
-  if (!email) {
-    showAuthError('Пожалуйста, введите email');
-    return false;
-  }
-  if (!emailRegex.test(email)) {
-    showAuthError('Пожалуйста, введите корректный email');
-    return false;
-  }
-  if (!password || password.length < 6) {
-    showAuthError('Пароль должен содержать минимум 6 символов');
-    return false;
-  }
-  if (isRegister && password.length < 8) {
-    showAuthError('Пароль должен содержать минимум 8 символов');
-    return false;
-  }
-  return true;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const errorElement = document.getElementById('auth-error');
+    
+    if (!email) {
+        showAuthError('Пожалуйста, введите email');
+        return false;
+    }
+    
+    if (!emailRegex.test(email)) {
+        showAuthError('Пожалуйста, введите корректный email');
+        return false;
+    }
+    
+    if (!password || password.length < 6) {
+        showAuthError('Пароль должен содержать минимум 6 символов');
+        return false;
+    }
+    
+    if (isRegister && password.length < 8) {
+        showAuthError('Пароль должен содержать минимум 8 символов');
+        return false;
+    }
+    
+    return true;
 }
 
+// Показать ошибку авторизации
 function showAuthError(message) {
-  const errorElement = document.getElementById('auth-error');
-  errorElement.textContent = message;
-  errorElement.classList.remove('hidden');
-  setTimeout(() => errorElement.classList.add('hidden'), 5000);
-}
-
-async function authApiRequest(url, data) {
-  return new Promise((resolve, reject) => {
+    const errorElement = document.getElementById('auth-error');
+    errorElement.textContent = message;
+    errorElement.classList.remove('hidden');
+    
     setTimeout(() => {
-      if (url === '/login' && data.email === 'test@example.com' && data.password === 'password123') {
-        resolve({ token: 'mock_jwt_token', user: { email: data.email } });
-      } else if (url === '/register') {
-        resolve({ token: 'mock_jwt_token', user: { email: data.email } });
-      } else {
-        reject(new Error('Неверный email или пароль'));
-      }
-    }, 1000);
-  });
+        errorElement.classList.add('hidden');
+    }, 5000);
 }
 
+// Имитация API для авторизации
+async function authApiRequest(url, data) {
+    // В реальном приложении здесь будет fetch к вашему бэкенду
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            // Имитация успешного ответа
+            if (url === '/login' && data.email === 'test@example.com' && data.password === 'password123') {
+                resolve({
+                    token: 'mock_jwt_token',
+                    user: { email: data.email }
+                });
+            } 
+            // Имитация регистрации
+            else if (url === '/register') {
+                resolve({
+                    token: 'mock_jwt_token',
+                    user: { email: data.email }
+                });
+            } 
+            else {
+                reject(new Error('Неверный email или пароль'));
+            }
+        }, 1000);
+    });
+}
+
+// Обработчик формы авторизации/регистрации
 document.getElementById('login-form').addEventListener('submit', async function(e) {
-  e.preventDefault();
-  const modal = document.getElementById('auth-modal');
-  const email = document.getElementById('auth-email').value;
-  const password = document.getElementById('auth-password').value;
-  const isRegister = modal.dataset.mode === 'register';
-  const submitBtn = document.getElementById('auth-submit');
-  const loader = document.getElementById('auth-loader');
-  const authText = document.getElementById('auth-text');
-
-  if (!validateAuthForm(email, password, isRegister)) return;
-
-  try {
-    submitBtn.disabled = true;
-    authText.classList.add('hidden');
-    loader.classList.remove('hidden');
-
-    const response = await authApiRequest(isRegister ? '/register' : '/login', { email, password });
-
-    authToken = response.token;
-    currentUser = response.user;
-    localStorage.setItem('authToken', authToken);
-    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-
-    initAuthUI();
-    closeAuthModal();
-    showToast(isRegister ? 'Регистрация прошла успешно!' : 'Вы успешно вошли!');
-  } catch (error) {
-    showAuthError(error.message || 'Ошибка при авторизации');
-  } finally {
-    submitBtn.disabled = false;
-    authText.classList.remove('hidden');
-    loader.classList.add('hidden');
-  }
+    e.preventDefault();
+    
+    const modal = document.getElementById('auth-modal');
+    const email = document.getElementById('auth-email').value;
+    const password = document.getElementById('auth-password').value;
+    const isRegister = modal.dataset.mode === 'register';
+    const submitBtn = document.getElementById('auth-submit');
+    const loader = document.getElementById('auth-loader');
+    const authText = document.getElementById('auth-text');
+    
+    // Валидация
+    if (!validateAuthForm(email, password, isRegister)) return;
+    
+    try {
+        // Показываем лоадер
+        submitBtn.disabled = true;
+        authText.classList.add('hidden');
+        loader.classList.remove('hidden');
+        
+        // Имитация запроса к API
+        const response = await authApiRequest(
+            isRegister ? '/register' : '/login', 
+            { email, password }
+        );
+        
+        // Сохраняем токен и данные пользователя
+        authToken = response.token;
+        currentUser = response.user;
+        
+        localStorage.setItem('authToken', authToken);
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        
+        // Обновляем интерфейс
+        initAuthUI();
+        closeAuthModal();
+        
+        // Показываем уведомление об успешной авторизации
+        showToast(isRegister ? 'Регистрация прошла успешно!' : 'Вы успешно вошли!');
+        
+    } catch (error) {
+        showAuthError(error.message || 'Ошибка при авторизации');
+    } finally {
+        submitBtn.disabled = false;
+        authText.classList.remove('hidden');
+        loader.classList.add('hidden');
+    }
 });
 
+// Выход из системы
 function logout() {
-  authToken = null;
-  currentUser = null;
-  localStorage.removeItem('authToken');
-  localStorage.removeItem('currentUser');
-  initAuthUI();
-  closeMenu();
-  showToast('Вы вышли из системы');
+    authToken = null;
+    currentUser = null;
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('currentUser');
+    
+    initAuthUI();
+    closeMenu();
+    showToast('Вы вышли из системы');
 }
 
+// Показать профиль пользователя
 function showProfile() {
-  if (!currentUser) return;
-  alert(`Профиль пользователя:\nEmail: ${currentUser.email}`);
-  closeMenu();
+    if (!currentUser) return;
+    
+    alert(`Профиль пользователя:\nEmail: ${currentUser.email}`);
+    closeMenu();
 }
 
+// Показать toast-уведомление
 function showToast(message) {
-  const toast = document.getElementById('toast');
-  toast.textContent = message;
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 3000);
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
 }
 
-  // Закрытие по клику вне модального окна
-  document.getElementById('auth-modal').addEventListener('click', function(e) {
-    if (e.target === this) {
-      closeAuthModal();
-    }
-  });
-// Глобальные переменные
-let currentDepositTask = {};
-let currentAnnuityTask = {};
-let currentDiffTask = {};
-let currentInvestTask = {};
-let currentEgeTask = {};
-let score = 0;
-let totalTasks = 0;
-let answeredDeposit = false;
-let answeredAnnuity = false;
-let answeredDiff = false;
-let answeredInvest = false;
-let answeredEge = false;
-let currentLevel = 'basic'; // 'basic' или 'advanced'
-let egeTasksCompleted = 0;
-let egeTotalScore = 0;
+// ==================== УПРАВЛЕНИЕ МЕНЮ ====================
 
-// Управление боковым меню
 function toggleMenu() {
-  const sidebar = document.getElementById('sidebar-menu');
-  const overlay = document.getElementById('menu-overlay');
-  
-  // Проверка на существование элементов для надежности
-  if (sidebar && overlay) {
+    const sidebar = document.getElementById('sidebar-menu');
+    const overlay = document.getElementById('menu-overlay');
     sidebar.classList.toggle('open');
     overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
-    
-    // Блокировка прокрутки тела страницы при открытом меню
     document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
-  }
 }
+
+function closeMenu() {
+    document.getElementById('sidebar-menu').classList.remove('open');
+    document.getElementById('menu-overlay').style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+// ==================== ФИНАНСОВЫЙ ТРЕНАЖЁР ====================
+
 // Создание анимированного фона
 function createBubbles() {
     const container = document.getElementById('bubbles-container');
@@ -344,13 +385,6 @@ function updateProgress() {
     document.getElementById('progress-bar').style.width = `${progress}%`;
     document.getElementById('total-score').textContent = `${progress}%`;
 }
-
-// Инициализация
-document.addEventListener('DOMContentLoaded', function() {
-    createBubbles();
-    generateDepositTask();
-    setEgeLevel('basic');
-});
 
 // Проверка ответов для вкладов
 function checkDepositAnswer() {
@@ -1005,7 +1039,6 @@ function generateAdvancedEgeTask() {
     document.getElementById('ege-alert').classList.add('hidden');
     answeredEge = false;
 }
-
 // Вспомогательные функции
 function formatNumber(num) {
     return new Intl.NumberFormat('ru-RU').format(Math.round(num));
@@ -1021,32 +1054,62 @@ function getYearWord(years) {
     return 'лет';
 }
 
-// Управление меню
-function toggleMenu() {
-    const sidebar = document.getElementById('sidebar-menu');
-    const overlay = document.getElementById('menu-overlay');
-    sidebar.classList.toggle('open');
-    overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
-}
-
-function closeMenu() {
-    document.getElementById('sidebar-menu').classList.remove('open');
-    document.getElementById('menu-overlay').style.display = 'none';
-}
-
-// Закрытие меню при клике вне или нажатии ESC
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape') {
-        closeMenu();
-    }
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    createBubbles();
+    generateDepositTask();
+    setEgeLevel('basic');
+    initAuthUI();
+    
+    // Обработчик клика по кнопке входа в хедере
+    document.getElementById('auth-btn').addEventListener('click', () => openAuthModal());
+    
+    // Обработчик клика по кнопке профиля
+    document.getElementById('profile-btn').addEventListener('click', showProfile);
+    
+    // Закрытие модального окна при клике вне его
+    document.getElementById('auth-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeAuthModal();
+        }
+    });
+    
+    // Закрытие меню при клике на пункт меню
+    document.querySelector('#sidebar-menu ul').addEventListener('click', function(e) {
+        if (e.target.tagName === 'A') {
+            closeMenu();
+        }
+    });
+    
+    // Закрытие меню при нажатии ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeMenu();
+            closeAuthModal();
+        }
+    });
 });
 
-document.getElementById('close-menu').addEventListener('click', () => {
+// ==================== ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ ====================
+
+// Открытие модального окна при клике на "Авторизация" в меню
+document.querySelector('aside li:nth-child(4) a').addEventListener('click', function(e) {
+    e.preventDefault();
     closeMenu();
+    openAuthModal();
 });
 
-window.addEventListener('resize', () => {
-    if (window.innerWidth > 768) {
-        closeMenu();
+// Закрытие по ESC
+document.addEventListener('keydown', function(e) {
+    if(e.key === 'Escape' && !document.getElementById('auth-modal').classList.contains('hidden')) {
+        closeAuthModal();
     }
+});
+
+// Обработчик формы входа
+document.getElementById('login-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    // Здесь можно добавить логику входа
+    alert('Функция входа будет реализована позже');
+    closeAuthModal();
 });
