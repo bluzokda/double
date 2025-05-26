@@ -15,259 +15,213 @@ let answeredAnnuity = false;
 let answeredDiff = false;
 let answeredInvest = false;
 let answeredEge = false;
+let currentLevel = 'basic';
+let egeTasksCompleted = 0;
+let egeTotalScore = 0;
+
+// ==================== АВТОРИЗАЦИЯ ====================
+function initAuthUI() {
+  const authBtn = document.getElementById('auth-btn');
+  const profileBtn = document.getElementById('profile-btn');
+  if (authToken && currentUser) {
+    authBtn.classList.add('hidden');
+    profileBtn.classList.remove('hidden');
+    document.getElementById('user-email')?.textContent(currentUser.email);
+    updateMenuForAuthUser();
+  } else {
+    authBtn.classList.remove('hidden');
+    profileBtn.classList.add('hidden');
+    updateMenuForGuest();
+  }
+}
+
+function updateMenuForAuthUser() {
+  const menuItems = `
+    <li><a href="#" onclick="showProfile()">Профиль</a></li>
+    <li><a href="#">Статистика</a></li>
+    <li><a href="#">Таблица лидеров</a></li>
+    <li><a href="#" onclick="logout()">Выйти</a></li>`;
+  document.querySelector('#sidebar-menu ul').innerHTML = menuItems;
+}
+
+function updateMenuForGuest() {
+  const menuItems = `
+    <li><a href="#">О тренажёре</a></li>
+    <li><a href="#">Таблица лидеров</a></li>
+    <li><a href="#" onclick="openAuthModal()">Войти</a></li>
+    <li><a href="#" onclick="openAuthModal('register')">Регистрация</a></li>`;
+  document.querySelector('#sidebar-menu ul').innerHTML = menuItems;
+}
+
+function openAuthModal(mode = 'login') {
+  const modal = document.getElementById('auth-modal');
+  const title = modal.querySelector('h2');
+  const submitBtn = modal.querySelector('#auth-submit');
+  const switchLink = modal.querySelector('#auth-switch-mode');
+
+  if (mode === 'login') {
+    title.textContent = 'Авторизация';
+    submitBtn.textContent = 'Войти';
+    switchLink.innerHTML = 'Нет аккаунта? <a href="#" class="text-blue-400 hover:underline" onclick="openAuthModal(\'register\')">Зарегистрируйтесь</a>';
+  } else {
+    title.textContent = 'Регистрация';
+    submitBtn.textContent = 'Зарегистрироваться';
+    switchLink.innerHTML = 'Уже есть аккаунт? <a href="#" class="text-blue-400 hover:underline" onclick="openAuthModal(\'login\')">Войдите</a>';
+  }
+
+  modal.dataset.mode = mode;
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAuthModal() {
+  const modal = document.getElementById('auth-modal');
+  modal.classList.remove('active');
+  document.body.style.overflow = '';
+  document.getElementById('auth-error').classList.add('hidden');
+  document.getElementById('login-form').reset();
+}
+
+function validateAuthForm(email, password, isRegister = false) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const errorElement = document.getElementById('auth-error');
+  if (!email) {
+    showAuthError('Пожалуйста, введите email');
+    return false;
+  }
+  if (!emailRegex.test(email)) {
+    showAuthError('Пожалуйста, введите корректный email');
+    return false;
+  }
+  if (!password || password.length < 6) {
+    showAuthError('Пароль должен содержать минимум 6 символов');
+    return false;
+  }
+  if (isRegister && password.length < 8) {
+    showAuthError('Пароль должен содержать минимум 8 символов');
+    return false;
+  }
+  return true;
+}
+
+function showAuthError(message) {
+  const errorElement = document.getElementById('auth-error');
+  errorElement.textContent = message;
+  errorElement.classList.remove('hidden');
+  setTimeout(() => errorElement.classList.add('hidden'), 5000);
+}
+
+async function authApiRequest(url, data) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (url === '/login' && data.email === 'test@example.com' && data.password === 'password123') {
+        resolve({ token: 'mock_jwt_token', user: { email: data.email } });
+      } else if (url === '/register') {
+        resolve({ token: 'mock_jwt_token', user: { email: data.email } });
+      } else {
+        reject(new Error('Неверный email или пароль'));
+      }
+    }, 1000);
+  });
+}
+
+document.getElementById('login-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const modal = document.getElementById('auth-modal');
+  const email = document.getElementById('auth-email').value;
+  const password = document.getElementById('auth-password').value;
+  const isRegister = modal.dataset.mode === 'register';
+  const submitBtn = document.getElementById('auth-submit');
+  const loader = document.getElementById('auth-loader');
+  const authText = document.getElementById('auth-text');
+
+  if (!validateAuthForm(email, password, isRegister)) return;
+
+  try {
+    submitBtn.disabled = true;
+    authText.classList.add('hidden');
+    loader.classList.remove('hidden');
+
+    const response = await authApiRequest(isRegister ? '/register' : '/login', { email, password });
+
+    authToken = response.token;
+    currentUser = response.user;
+    localStorage.setItem('authToken', authToken);
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+    initAuthUI();
+    closeAuthModal();
+    showToast(isRegister ? 'Регистрация прошла успешно!' : 'Вы успешно вошли!');
+  } catch (error) {
+    showAuthError(error.message || 'Ошибка при авторизации');
+  } finally {
+    submitBtn.disabled = false;
+    authText.classList.remove('hidden');
+    loader.classList.add('hidden');
+  }
+});
+
+function logout() {
+  authToken = null;
+  currentUser = null;
+  localStorage.removeItem('authToken');
+  localStorage.removeItem('currentUser');
+  initAuthUI();
+  closeMenu();
+  showToast('Вы вышли из системы');
+}
+
+function showProfile() {
+  if (!currentUser) return;
+  alert(`Профиль пользователя:\nEmail: ${currentUser.email}`);
+  closeMenu();
+}
+
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+  // Закрытие по клику вне модального окна
+  document.getElementById('auth-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeAuthModal();
+    }
+  });
+// Глобальные переменные
+let currentDepositTask = {};
+let currentAnnuityTask = {};
+let currentDiffTask = {};
+let currentInvestTask = {};
+let currentEgeTask = {};
+let score = 0;
+let totalTasks = 0;
+let answeredDeposit = false;
+let answeredAnnuity = false;
+let answeredDiff = false;
+let answeredInvest = false;
+let answeredEge = false;
 let currentLevel = 'basic'; // 'basic' или 'advanced'
 let egeTasksCompleted = 0;
 let egeTotalScore = 0;
 
-// ==================== ИНИЦИАЛИЗАЦИЯ ====================
-document.addEventListener('DOMContentLoaded', function() {
-    createBubbles();
-    generateDepositTask();
-    setEgeLevel('basic');
-    initAuthUI();
-    setupEventListeners();
-});
-
-function setupEventListeners() {
-    // Закрытие меню при клике вне его
-    document.addEventListener('click', function(e) {
-        const sidebar = document.getElementById('sidebar-menu');
-        const menuBtn = document.querySelector('[onclick="toggleMenu()"]');
-        
-        if (!sidebar.contains(e.target) && e.target !== menuBtn && !menuBtn.contains(e.target)) {
-            closeMenu();
-        }
-    });
-}
-
-// ==================== АВТОРИЗАЦИЯ ====================
-function initAuthUI() {
-    const authBtn = document.getElementById('auth-btn');
-    const profileBtn = document.getElementById('profile-btn');
+// Управление боковым меню
+function toggleMenu() {
+  const sidebar = document.getElementById('sidebar-menu');
+  const overlay = document.getElementById('menu-overlay');
+  
+  // Проверка на существование элементов для надежности
+  if (sidebar && overlay) {
+    sidebar.classList.toggle('open');
+    overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
     
-    if (authToken && currentUser) {
-        if (authBtn) authBtn.classList.add('hidden');
-        if (profileBtn) profileBtn.classList.remove('hidden');
-        updateMenuForAuthUser();
-    } else {
-        if (authBtn) authBtn.classList.remove('hidden');
-        if (profileBtn) profileBtn.classList.add('hidden');
-        updateMenuForGuest();
-    }
+    // Блокировка прокрутки тела страницы при открытом меню
+    document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
+  }
 }
-
-function updateMenuForAuthUser() {
-    const menuItems = `
-        <li><a href="#" onclick="showProfile()">Профиль</a></li>
-        <li><a href="#" onclick="showStats()">Статистика</a></li>
-        <li><a href="#" onclick="showLeaderboard()">Таблица лидеров</a></li>
-        <li><a href="#" onclick="logout()">Выйти</a></li>`;
-    
-    const menu = document.querySelector('#sidebar-menu ul');
-    if (menu) menu.innerHTML = menuItems;
-}
-
-function updateMenuForGuest() {
-    const menuItems = `
-        <li><a href="#">О тренажёре</a></li>
-        <li><a href="#" onclick="showLeaderboard()">Таблица лидеров</a></li>
-        <li><a href="#" onclick="openAuthModal('login')">Войти</a></li>
-        <li><a href="#" onclick="openAuthModal('register')">Регистрация</a></li>`;
-    
-    const menu = document.querySelector('#sidebar-menu ul');
-    if (menu) menu.innerHTML = menuItems;
-}
-
-function openAuthModal(mode = 'login') {
-    const modal = document.getElementById('auth-modal');
-    const title = modal.querySelector('h2');
-    const submitBtn = modal.querySelector('#auth-submit');
-    const switchLink = modal.querySelector('#auth-switch-link');
-    const forgotLink = modal.querySelector('#auth-forgot-link');
-
-    if (mode === 'login') {
-        title.textContent = 'Авторизация';
-        submitBtn.textContent = 'Войти';
-        switchLink.innerHTML = 'Нет аккаунта? <a href="#" class="text-neon-blue hover:underline" onclick="openAuthModal(\'register\')">Зарегистрируйтесь</a>';
-        forgotLink.classList.remove('hidden');
-    } else {
-        title.textContent = 'Регистрация';
-        submitBtn.textContent = 'Зарегистрироваться';
-        switchLink.innerHTML = 'Уже есть аккаунт? <a href="#" class="text-neon-blue hover:underline" onclick="openAuthModal(\'login\')">Войдите</a>';
-        forgotLink.classList.add('hidden');
-    }
-
-    modal.dataset.mode = mode;
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeAuthModal() {
-    const modal = document.getElementById('auth-modal');
-    modal.classList.add('hidden');
-    document.body.style.overflow = '';
-    document.getElementById('auth-error').classList.add('hidden');
-    document.getElementById('login-form').reset();
-}
-
-async function handleAuthSubmit(e) {
-    e.preventDefault();
-    const modal = document.getElementById('auth-modal');
-    const email = document.getElementById('auth-email').value;
-    const password = document.getElementById('auth-password').value;
-    const isRegister = modal.dataset.mode === 'register';
-    const submitBtn = document.getElementById('auth-submit');
-    const loader = document.getElementById('auth-loader');
-    const authText = document.getElementById('auth-text');
-
-    // Валидация
-    if (!validateAuthForm(email, password, isRegister)) return;
-
-    try {
-        submitBtn.disabled = true;
-        authText.classList.add('hidden');
-        loader.classList.remove('hidden');
-
-        // Имитация запроса к API
-        const response = await mockAuthApi(isRegister ? 'register' : 'login', { email, password });
-
-        authToken = response.token;
-        currentUser = response.user;
-        localStorage.setItem('authToken', authToken);
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-
-        initAuthUI();
-        closeAuthModal();
-        showToast(isRegister ? 'Регистрация прошла успешно!' : 'Вы успешно вошли!');
-    } catch (error) {
-        showAuthError(error.message || 'Ошибка при авторизации');
-    } finally {
-        submitBtn.disabled = false;
-        authText.classList.remove('hidden');
-        loader.classList.add('hidden');
-    }
-}
-
-function validateAuthForm(email, password, isRegister = false) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const errorElement = document.getElementById('auth-error');
-    
-    if (!email) {
-        showAuthError('Пожалуйста, введите email');
-        return false;
-    }
-    
-    if (!emailRegex.test(email)) {
-        showAuthError('Пожалуйста, введите корректный email');
-        return false;
-    }
-    
-    if (!password || password.length < 6) {
-        showAuthError('Пароль должен содержать минимум 6 символов');
-        return false;
-    }
-    
-    if (isRegister && password.length < 8) {
-        showAuthError('Пароль должен содержать минимум 8 символов');
-        return false;
-    }
-    
-    return true;
-}
-
-async function mockAuthApi(endpoint, data) {
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            if (endpoint === 'login' && data.email === 'test@example.com' && data.password === 'password123') {
-                resolve({ 
-                    token: 'mock_jwt_token', 
-                    user: { 
-                        email: data.email,
-                        name: 'Тестовый пользователь',
-                        stats: {
-                            totalTasks: 42,
-                            correctAnswers: 35,
-                            progress: 83
-                        }
-                    } 
-                });
-            } else if (endpoint === 'register') {
-                resolve({ 
-                    token: 'mock_jwt_token', 
-                    user: { 
-                        email: data.email,
-                        name: data.email.split('@')[0],
-                        stats: {
-                            totalTasks: 0,
-                            correctAnswers: 0,
-                            progress: 0
-                        }
-                    } 
-                });
-            } else {
-                reject(new Error('Неверный email или пароль'));
-            }
-        }, 1000);
-    });
-}
-
-function showAuthError(message) {
-    const errorElement = document.getElementById('auth-error');
-    errorElement.textContent = message;
-    errorElement.classList.remove('hidden');
-    setTimeout(() => errorElement.classList.add('hidden'), 5000);
-}
-
-function logout() {
-    authToken = null;
-    currentUser = null;
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('currentUser');
-    initAuthUI();
-    closeMenu();
-    showToast('Вы вышли из системы');
-}
-
-function showProfile() {
-    if (!currentUser) return;
-    
-    // Здесь можно реализовать отображение профиля
-    alert(`Профиль пользователя:\nEmail: ${currentUser.email}\nИмя: ${currentUser.name}`);
-    closeMenu();
-}
-
-function showStats() {
-    if (!currentUser) return;
-    
-    // Здесь можно реализовать отображение статистики
-    alert(`Ваша статистика:\n\nВсего решено задач: ${currentUser.stats.totalTasks}\nПравильных ответов: ${currentUser.stats.correctAnswers}\nПрогресс: ${currentUser.stats.progress}%`);
-    closeMenu();
-}
-
-function showLeaderboard() {
-    // Здесь можно реализовать таблицу лидеров
-    alert('Таблица лидеров будет реализована в следующей версии');
-    closeMenu();
-}
-
-function showToast(message) {
-    const toast = document.createElement('div');
-    toast.className = 'fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-3 rounded-lg shadow-lg border border-neon-blue flex items-center';
-    toast.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-neon-blue" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-        </svg>
-        ${message}
-    `;
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.classList.add('opacity-0', 'transition-opacity', 'duration-300');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
-// ==================== ОСНОВНЫЕ ФУНКЦИИ ТРЕНАЖЁРА ====================
+// Создание анимированного фона
 function createBubbles() {
     const container = document.getElementById('bubbles-container');
     if (!container) return;
@@ -310,6 +264,7 @@ function createBubbles() {
     }
 }
 
+// Управление табами
 function openTab(event, tabName) {
     const tabContents = document.getElementsByClassName('tab-content');
     for (let i = 0; i < tabContents.length; i++) {
@@ -336,6 +291,7 @@ function openTab(event, tabName) {
     if (tabName === 'ege') generateEgeTask();
 }
 
+// Переключение уровня сложности
 function changeLevel(level) {
     currentLevel = level;
     
@@ -355,6 +311,7 @@ function changeLevel(level) {
     }
 }
 
+// Установка уровня сложности для задач ЕГЭ
 function setEgeLevel(level) {
     currentLevel = level;
     
@@ -373,6 +330,7 @@ function setEgeLevel(level) {
     generateEgeTask();
 }
 
+// Обновление прогресса
 function updateProgress() {
     let totalCorrect = 0;
     let totalTasks = 0;
@@ -385,17 +343,16 @@ function updateProgress() {
     const progress = totalTasks > 0 ? Math.round((totalCorrect / totalTasks) * 100) : 0;
     document.getElementById('progress-bar').style.width = `${progress}%`;
     document.getElementById('total-score').textContent = `${progress}%`;
-    
-    // Обновляем статистику пользователя, если он авторизован
-    if (currentUser) {
-        currentUser.stats.totalTasks = totalTasks;
-        currentUser.stats.correctAnswers = totalCorrect;
-        currentUser.stats.progress = progress;
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-    }
 }
 
-// ==================== ФУНКЦИИ ДЛЯ РАБОТЫ С ЗАДАЧАМИ ====================
+// Инициализация
+document.addEventListener('DOMContentLoaded', function() {
+    createBubbles();
+    generateDepositTask();
+    setEgeLevel('basic');
+});
+
+// Проверка ответов для вкладов
 function checkDepositAnswer() {
     const alertDiv = document.getElementById('deposit-alert');
     const answerInput = document.getElementById('deposit-answer');
@@ -443,6 +400,7 @@ function checkDepositAnswer() {
     updateProgress();
 }
 
+// Проверка ответов для аннуитетных кредитов
 function checkAnnuityAnswer() {
     const alertDiv = document.getElementById('annuity-alert');
     const answerInput = document.getElementById('annuity-answer');
@@ -490,6 +448,7 @@ function checkAnnuityAnswer() {
     updateProgress();
 }
 
+// Проверка ответов для дифференцированных кредитов
 function checkDiffAnswer() {
     const alertDiv = document.getElementById('diff-alert');
     const answerInput = document.getElementById('diff-answer');
@@ -539,6 +498,7 @@ function checkDiffAnswer() {
     updateProgress();
 }
 
+// Проверка ответов для инвестиций
 function checkInvestAnswer() {
     const alertDiv = document.getElementById('invest-alert');
     const answerInput = document.getElementById('invest-answer');
@@ -586,6 +546,7 @@ function checkInvestAnswer() {
     updateProgress();
 }
 
+// Проверка ответов для задач ЕГЭ
 function checkEgeAnswer() {
     const alertDiv = document.getElementById('ege-alert');
     const answerInput = document.getElementById('ege-answer');
@@ -669,7 +630,7 @@ function checkEgeAnswer() {
     updateProgress();
 }
 
-// ==================== ГЕНЕРАЦИЯ ЗАДАЧ ====================
+// Генерация задач для вкладов
 function generateDepositTask() {
     let principal, rate, years, isCompound;
     
@@ -725,6 +686,7 @@ function generateDepositTask() {
     answeredDeposit = false;
 }
 
+// Генерация задач для аннуитетных кредитов
 function generateAnnuityTask() {
     let principal, rate, years;
     
@@ -777,6 +739,7 @@ function generateAnnuityTask() {
     answeredAnnuity = false;
 }
 
+// Генерация задач для дифференцированных кредитов
 function generateDiffTask() {
     let principal, rate, years;
     
@@ -831,6 +794,7 @@ function generateDiffTask() {
     answeredDiff = false;
 }
 
+// Генерация задач для инвестиций
 function generateInvestTask() {
     let target, rate, years;
     
@@ -884,6 +848,7 @@ function generateInvestTask() {
     answeredInvest = false;
 }
 
+// Генерация задач ЕГЭ
 function generateEgeTask() {
     // Проверка завершения 10 задач
     if (egeTasksCompleted >= 10) {
@@ -901,6 +866,7 @@ function generateEgeTask() {
     }
 }
 
+// Генерация базовых задач ЕГЭ (№15)
 function generateBasicEgeTask() {
     const taskTypes = ['deposit', 'credit', 'discount'];
     const type = taskTypes[Math.floor(Math.random() * taskTypes.length)];
@@ -972,6 +938,7 @@ function generateBasicEgeTask() {
     answeredEge = false;
 }
 
+// Генерация сложных задач ЕГЭ (№17)
 function generateAdvancedEgeTask() {
     const taskTypes = ['two-payments', 'equal-reduction', 'varying-payments', 'deposit-additions'];
     const type = taskTypes[Math.floor(Math.random() * taskTypes.length)];
@@ -1039,7 +1006,7 @@ function generateAdvancedEgeTask() {
     answeredEge = false;
 }
 
-// ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
+// Вспомогательные функции
 function formatNumber(num) {
     return new Intl.NumberFormat('ru-RU').format(Math.round(num));
 }
@@ -1054,18 +1021,17 @@ function getYearWord(years) {
     return 'лет';
 }
 
+// Управление меню
 function toggleMenu() {
     const sidebar = document.getElementById('sidebar-menu');
     const overlay = document.getElementById('menu-overlay');
     sidebar.classList.toggle('open');
     overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
-    document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
 }
 
 function closeMenu() {
     document.getElementById('sidebar-menu').classList.remove('open');
     document.getElementById('menu-overlay').style.display = 'none';
-    document.body.style.overflow = '';
 }
 
 // Закрытие меню при клике вне или нажатии ESC
@@ -1084,120 +1050,26 @@ window.addEventListener('resize', () => {
         closeMenu();
     }
 });
-
-// ==================== АВТОРИЗАЦИЯ ====================
-
-// Функции для модального окна авторизации
+// Функции для авторизации
 function openAuthModal() {
-  const modal = document.getElementById('auth-modal');
-  modal.classList.remove('hidden');
-  modal.classList.add('animate__animated', 'animate__fadeIn');
-  document.body.style.overflow = 'hidden';
+  document.getElementById('auth-modal').classList.remove('hidden');
 }
 
 function closeAuthModal() {
-  const modal = document.getElementById('auth-modal');
-  modal.classList.add('animate__animated', 'animate__fadeOut');
-  
-  setTimeout(() => {
-    modal.classList.add('hidden');
-    modal.classList.remove('animate__fadeIn', 'animate__fadeOut');
-    document.body.style.overflow = '';
-  }, 300);
+  document.getElementById('auth-modal').classList.add('hidden');
 }
 
-// Валидация формы
-function validateAuthForm(email, password) {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  
-  if (!email) {
-    showAuthError('Пожалуйста, введите email');
-    return false;
-  }
-  
-  if (!emailRegex.test(email)) {
-    showAuthError('Пожалуйста, введите корректный email');
-    return false;
-  }
-  
-  if (!password || password.length < 6) {
-    showAuthError('Пароль должен содержать минимум 6 символов');
-    return false;
-  }
-  
-  return true;
-}
-// Показать ошибку авторизации
-function showAuthError(message) {
-  const errorElement = document.getElementById('auth-error');
-  errorElement.textContent = message;
-  errorElement.classList.remove('hidden');
-  
-  setTimeout(() => {
-    errorElement.classList.add('hidden');
-  }, 5000);
-}
-  // Обработчик формы авторизации
-document.getElementById('login-form').addEventListener('submit', async function(e) {
+// Обработчик формы входа
+document.getElementById('login-form').addEventListener('submit', function(e) {
   e.preventDefault();
-  
-  const email = document.getElementById('auth-email').value;
-  const password = document.getElementById('auth-password').value;
-  const submitBtn = document.getElementById('auth-submit');
-  const loader = document.getElementById('auth-loader');
-  
-  // Валидация
-  if (!validateAuthForm(email, password)) return;
-  
-  try {
-    // Показываем лоадер
-    submitBtn.disabled = true;
-    loader.classList.remove('hidden');
+  // Здесь можно добавить логику входа
+  alert('Функция входа будет реализована позже');
+  closeAuthModal();
+});
 
-// Открываем модальное окно при клике на "Авторизация" в меню
+// Добавьте вызов openAuthModal() для кнопки входа в меню
 document.querySelector('aside li:nth-child(4) a').addEventListener('click', function(e) {
   e.preventDefault();
-  closeMenu(); // Закрываем меню
-  openAuthModal(); // Открываем авторизацию
-});
-
-// Закрытие по ESC
-document.addEventListener('keydown', function(e) {
-  if(e.key === 'Escape' && !document.getElementById('auth-modal').classList.contains('hidden')) {
-    closeAuthModal();
-  }
-});
-// Обновляем интерфейс для авторизованного пользователя
-    updateUIAfterAuth(email);
-    
-  } catch (error) {
-    showAuthError(error.message || 'Ошибка при авторизации');
-  } finally {
-    submitBtn.disabled = false;
-    loader.classList.add('hidden');
-  }
-});
-// Обновление интерфейса после авторизации
-function updateUIAfterAuth(email) {
-  // Меняем кнопку меню на email пользователя
-  const menuBtn = document.querySelector('.menu-btn');
-  if (menuBtn) {
-    menuBtn.innerHTML = `
-      <span class="truncate max-w-[120px]">${email}</span>
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
-        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-      </svg>
-    `;
-  }
-// Инициализация
-document.addEventListener('DOMContentLoaded', function() {
-  // Обработчик клика по пункту "Авторизация" в меню
-  const authLinks = document.querySelectorAll('[data-auth-open]');
-  
-  authLinks.forEach(link => {
-    link.addEventListener('click', function(e) {
-      e.preventDefault();
-      closeMenu();
-      openAuthModal();
-    });
-  });
+  toggleMenu();
+  openAuthModal();
+}); 
