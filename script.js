@@ -1050,26 +1050,3 @@ window.addEventListener('resize', () => {
         closeMenu();
     }
 });
-// Функции для авторизации
-function openAuthModal() {
-  document.getElementById('auth-modal').classList.remove('hidden');
-}
-
-function closeAuthModal() {
-  document.getElementById('auth-modal').classList.add('hidden');
-}
-
-// Обработчик формы входа
-document.getElementById('login-form').addEventListener('submit', function(e) {
-  e.preventDefault();
-  // Здесь можно добавить логику входа
-  alert('Функция входа будет реализована позже');
-  closeAuthModal();
-});
-
-// Добавьте вызов openAuthModal() для кнопки входа в меню
-document.querySelector('aside li:nth-child(4) a').addEventListener('click', function(e) {
-  e.preventDefault();
-  toggleMenu();
-  openAuthModal();
-}); 
